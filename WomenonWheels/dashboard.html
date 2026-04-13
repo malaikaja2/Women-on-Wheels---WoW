@@ -1,0 +1,491 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#9a48ff">
+<title>Book a Ride</title>
+
+<link rel="stylesheet" href="css/dashboard.css?v=20260412-1">
+<link rel="stylesheet" href="css/passenger-unified.css?v=20260412-1">
+<link rel="stylesheet" href="css/driver-nav.css?v=20260412-3">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="js/wow-role-guard.js?v=20260411-1"></script>
+
+<style>
+#map{
+height:100%;
+width:100%;
+}
+</style>
+
+</head>
+
+<body class="passenger-shell has-bottom-nav">
+
+<div class="dashboard">
+
+<section class="top-panel">
+
+<div class="panel-title-row">
+<button class="back-btn" type="button" onclick="history.back()">
+<span class="back-icon">&#8592;</span>
+<span class="back-text">Back</span>
+</button>
+<h2>Book a Ride</h2>
+</div>
+
+<div class="greeting">
+<span id="greetingText">Good Evening,</span>
+<strong id="userName">Guest</strong>
+</div>
+
+<div class="field-pill">
+<span class="field-icon pickup-icon" aria-hidden="true">
+<svg viewBox="0 0 24 24">
+<path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z"></path>
+</svg>
+</span>
+<span class="dot pickup-dot"></span>
+<input type="text" id="pickup" placeholder="Pickup location">
+</div>
+
+<div class="field-pill">
+<span class="field-icon drop-icon" aria-hidden="true">
+<svg viewBox="0 0 24 24">
+<path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z"></path>
+</svg>
+</span>
+<span class="dot drop-dot"></span>
+<input type="text" id="drop" placeholder="Where to?">
+</div>
+
+<div class="input-confirmation" id="inputConfirmation">
+<div>
+<span class="confirm-label">Pickup</span>
+<span class="confirm-text" id="pickupConfirm">--</span>
+</div>
+<div>
+<span class="confirm-label">Dropoff</span>
+<span class="confirm-text" id="dropConfirm">--</span>
+</div>
+</div>
+<div class="input-error" id="inputError">Please enter both pickup and drop-off locations.</div>
+
+</section>
+
+
+<section class="map-box">
+<div id="map"></div>
+<div class="map-overlay-text">Select destination to see route</div>
+</section>
+
+
+<section class="ride-section">
+
+<h3>Choose Ride</h3>
+
+<div class="ride-row">
+
+<article class="ride-card active" onclick="selectRide('WOW Car',380,this)">
+<img src="images/car.png">
+<div>
+<h4>WOW Car</h4>
+<p>4 seats</p>
+<span></span>
+</div>
+</article>
+
+<article class="ride-card" onclick="selectRide('WOW Bike',150,this)">
+<img src="images/bike.png">
+<div>
+<h4>WOW Bike</h4>
+<p>1 seat</p>
+<span></span>
+</div>
+</article>
+
+<article class="ride-card" onclick="selectRide('WOW Scooty',200,this)">
+<img src="images/scooty.png">
+<div>
+<h4>WOW Scooty</h4>
+<p>1 seat</p>
+<span></span>
+</div>
+</article>
+
+</div>
+
+
+<div class="carpool-card" id="carpoolCard">
+<div class="carpool-header">
+<div class="row-left">
+<span class="carpool-icon">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="M16 11c1.66 0 3-1.57 3-3.5S17.66 4 16 4s-3 1.57-3 3.5S14.34 11 16 11Zm-8 0c1.66 0 3-1.57 3-3.5S9.66 4 8 4 5 5.57 5 7.5 6.34 11 8 11Zm0 2c-2.67 0-8 1.34-8 4v3h10v-3c0-1.02.38-1.95 1-2.67C9.77 13.54 8.88 13 8 13Zm8 0c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4Z"/>
+</svg>
+</span>
+<div>
+<strong>Carpool with Women</strong>
+<p>Share ride &amp; save up to 30%</p>
+</div>
+</div>
+
+<div class="carpool-controls">
+<span class="info-dot">i</span>
+<label class="switch">
+<input type="checkbox" id="carpool">
+<span class="slider"></span>
+</label>
+</div>
+</div>
+
+<div class="ai-label">AI Fare Estimation</div>
+
+<div class="carpool-details" id="carpoolDetails">
+<div class="carpool-meta">
+<div>
+<span class="meta-label">Ride Type</span>
+<strong id="carpoolRideType">WOW Car</strong>
+</div>
+<div>
+<span class="meta-label">Seats Left</span>
+<strong id="carpoolSeats">3 seats</strong>
+</div>
+</div>
+<div class="passenger-row">
+<span class="meta-label">Passengers</span>
+<div class="passenger-control">
+<button type="button" class="passenger-btn" data-dir="-1" aria-label="Decrease passengers">-</button>
+<span id="carpoolPassengerCount">1</span>
+<button type="button" class="passenger-btn" data-dir="1" aria-label="Increase passengers">+</button>
+</div>
+</div>
+<div class="fare-grid">
+<div class="fare-row">
+<span class="fare-label">Original Fare</span>
+<span class="fare-value muted" id="originalFare">Rs. 380</span>
+</div>
+<div class="fare-row">
+<div class="fare-label">
+<span>Carpool Fare</span>
+<span class="save-pill">Save 30%</span>
+</div>
+<span class="fare-value accent" id="carpoolFare">Rs. 266</span>
+</div>
+</div>
+
+<p class="save-note" id="saveNote">You save Rs. 114 on this ride!</p>
+<div class="co-passengers">Looking for co-passengers heading your way...</div>
+</div>
+</div>
+
+
+<div class="offer-box">
+<div>
+<strong>Your Offer</strong>
+<p id="offerRangeHint">Adjust fare if needed</p>
+</div>
+
+<div class="offer-input">
+<span class="offer-icon">Edit</span>
+<input type="number" id="offerInput" min="0" step="1" value="266">
+</div>
+</div>
+
+
+<button class="schedule-box" id="scheduleBtn">
+<span class="schedule-left">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm12 8H5v9h14v-9Z"/>
+</svg>
+<span class="schedule-text">Schedule for Later</span>
+</span>
+<span class="chevron">&gt;</span>
+</button>
+
+
+<button id="bookBtn" disabled>Book WOW Car - Rs. 266</button>
+
+</section>
+
+</div>
+
+<section class="confirmation-panel" id="confirmationPanel" aria-hidden="true">
+<div class="confirm-map">
+<div class="confirm-map-canvas" id="confirmMap"></div>
+<div class="confirm-map-overlay">
+<div class="eta-pill"><span id="etaLabel">Driver arriving in</span> <strong id="etaText">10 min</strong></div>
+</div>
+<div class="driver-dot" id="driverDot"></div>
+</div>
+<div class="driver-card">
+<div class="driver-info">
+<div class="avatar">AS</div>
+<div>
+<strong id="confirmDriverName">Driver</strong>
+<div class="driver-sub" id="confirmDriverVehicle">Suzuki Alto - White</div>
+<div class="driver-rating" id="confirmDriverRating">&#9733; 4.9 · 342 trips</div>
+</div>
+</div>
+<div class="driver-meta">
+<div class="ride-code" id="confirmRideCode">Your WOW Code: WOW-000</div>
+<div class="ride-phone">+92 312 *** 56</div>
+</div>
+</div>
+
+<div class="ride-status-card">
+<div>
+<strong id="rideStatusTitle">Driver arriving</strong>
+<div class="ride-status-sub" id="rideStatusSub">ETA <span id="arrivalCountdown">05:00</span></div>
+</div>
+<span class="status-pill" id="rideStatusPill">Arriving</span>
+</div>
+<div class="ride-message" id="arrivalMessage">Driver is on the way to your pickup.</div>
+
+<div class="contact-row">
+<button class="contact-btn" id="chatBtn" style="display:none;">Chat</button>
+<button class="contact-btn" id="callBtn">Call</button>
+</div>
+
+<div class="trip-card">
+<div class="trip-row">
+<span class="dot pickup-dot"></span>
+<div>
+<div class="trip-label">Pickup</div>
+<div class="trip-text" id="confirmPickup">Gulshan Block 13, Karachi</div>
+</div>
+</div>
+<div class="trip-row">
+<span class="dot drop-dot"></span>
+<div>
+<div class="trip-label">Dropoff</div>
+<div class="trip-text" id="confirmDrop">DHA Phase 6, Karachi</div>
+</div>
+</div>
+<div class="trip-fare">
+<span>Estimated Fare</span>
+<strong id="confirmFare">Rs. 380</strong>
+</div>
+<div class="trip-fare">
+<span>Your WOW Code</span>
+<strong id="confirmWowCode">WOW-000</strong>
+</div>
+</div>
+
+<button class="primary-start-btn" id="startPassengerRide" disabled>Start Ride</button>
+<button class="cancel-btn" id="cancelRideBtn">Cancel Ride</button>
+<button class="sos-btn" id="sosBtn">SOS (Active only during ride)</button>
+</section>
+
+<div class="match-overlay" id="matchOverlay" aria-hidden="true">
+<section class="match-panel" id="matchPanel">
+<div class="match-header">
+<span>Finding Drivers</span>
+<strong>Hang tight, we are on it</strong>
+</div>
+<div class="match-loading" id="matchLoading">
+<div class="pulse-ring"></div>
+<div class="pulse-ring delay"></div>
+<div class="pulse-dot"></div>
+<p>Finding nearby drivers...</p>
+</div>
+
+<div class="match-drivers" id="matchDrivers">
+<div class="match-title">
+<strong>Nearby Drivers</strong>
+<span>Offers updating in real time</span>
+</div>
+<div class="driver-grid" id="driverGrid"></div>
+</div>
+
+<div class="match-offer" id="matchOffer">
+<div class="offer-card">
+<div class="offer-top">
+<div>
+<strong id="offerDriverName">Driver</strong>
+<span id="offerDriverMeta">WOW Car • ETA 6 min</span>
+</div>
+<span class="offer-fare" id="offerFare">Rs. 380</span>
+</div>
+<p id="offerNote">Driver is offering this ride.</p>
+<div class="offer-input">
+<label for="matchOfferInput">Your Offer</label>
+<div class="offer-field">
+<span>Rs.</span>
+<input type="number" id="matchOfferInput" min="0" step="1" value="380">
+<button class="offer-btn edit" id="sendOffer">Send Your Offer</button>
+</div>
+</div>
+<div class="offer-actions">
+<button class="offer-btn decline" id="declineOffer">Decline</button>
+<button class="offer-btn accept" id="acceptOffer">Accept</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+
+<div class="modal-overlay" id="cancelOverlay"></div>
+<div class="modal-card" id="cancelModal">
+<h4>Cancel this ride?</h4>
+<p>Are you sure you want to cancel this ride? This action cannot be undone.</p>
+<div class="modal-actions">
+<button class="modal-btn outline" id="keepRideBtn">Keep Ride</button>
+<button class="modal-btn danger" id="confirmCancelBtn">Yes, Cancel</button>
+</div>
+</div>
+
+<div class="modal-overlay" id="sosOverlay"></div>
+<section class="sos-panel" id="sosPanel" aria-hidden="true">
+<div class="sos-header">
+<button class="back-btn sos-back" id="closeSos" type="button">
+<span class="back-icon">&#8592;</span>
+<span class="back-text">Back</span>
+</button>
+<strong>Emergency SOS</strong>
+</div>
+<div class="sos-banner">
+<div class="sos-icon">!</div>
+<div class="sos-text">
+<strong id="sosHeadline">Emergency SOS</strong>
+<span id="sosSubtext">SOS is available during active ride only.</span>
+</div>
+</div>
+<button class="activate-sos-btn" id="activateSosBtn" disabled>SOS (Active only during ride)</button>
+<div class="sos-info">
+<strong>When SOS is activated:</strong>
+<ul>
+<li>Your live location is shared with contacts</li>
+<li>Emergency services (15) are notified</li>
+<li>Ride details sent to family members</li>
+</ul>
+</div>
+</section>
+
+<div class="modal-overlay" id="chatOverlay"></div>
+<section class="chat-panel" id="chatPanel" aria-hidden="true">
+<div class="chat-header">
+<button class="back-btn chat-back" id="closeChat" type="button">
+<span class="back-icon">&#8592;</span>
+<span class="back-text">Back</span>
+</button>
+<div class="chat-user">
+<div class="chat-avatar" id="chatAvatar">A</div>
+<div>
+<strong id="chatDriverName">Driver</strong>
+<span class="chat-status"><span class="status-dot"></span>Driver Online</span>
+</div>
+</div>
+</div>
+<div class="chat-notice">This chat is monitored for safety. Contact numbers are masked.</div>
+<div class="chat-body" id="chatBody"></div>
+<div class="chat-quick">
+<button class="quick-chip" type="button">I'm at the pickup point</button>
+<button class="quick-chip" type="button">Please wait, in 2 min</button>
+<button class="quick-chip" type="button">Thank you!</button>
+</div>
+<div class="chat-input">
+<button class="chat-icon-btn" type="button" id="emojiBtn" aria-label="Add emoji">??</button>
+<input type="text" id="chatInput" placeholder="Type a message...">
+<button id="sendChat" class="send-btn">Send</button>
+</div>
+</section>
+
+<div class="modal-overlay" id="callOverlay"></div>
+<section class="call-panel" id="callPanel" aria-hidden="true">
+<div class="call-header">
+<button class="back-btn call-back" id="closeCall" type="button">
+<span class="back-icon">&#8592;</span>
+<span class="back-text">Back</span>
+</button>
+<strong>Calling Driver</strong>
+</div>
+<div class="call-card">
+<div class="avatar large">AS</div>
+<strong id="callDriverName">Driver</strong>
+<span>Driver</span>
+<div class="call-timer" id="callTimer">00:00</div>
+<div class="call-icon">?</div>
+</div>
+<button class="end-call-btn" id="endCallBtn">End Call</button>
+</section>
+
+
+<div class="schedule-overlay" id="scheduleOverlay"></div>
+<aside class="schedule-sidebar" id="scheduleSidebar" aria-hidden="true">
+<div class="sidebar-header">
+<div class="sidebar-title">
+<span class="calendar-icon">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm12 8H5v9h14v-9Z"/>
+</svg>
+</span>
+<strong>Schedule Ride</strong>
+</div>
+<button class="close-btn" id="closeSchedule">x</button>
+</div>
+
+<div class="calendar-head">
+<button class="nav-btn" id="prevMonth">&lt;</button>
+<div id="calendarTitle">March 2026</div>
+<button class="nav-btn" id="nextMonth">&gt;</button>
+</div>
+
+<div class="calendar-grid" id="calendarGrid"></div>
+
+<div class="time-section">
+<div class="time-title">
+<span class="clock-icon">Clock</span>
+<strong>Select Time</strong>
+</div>
+<div class="time-grid" id="timeGrid"></div>
+</div>
+
+<div class="schedule-summary" id="scheduleSummary">
+Scheduled for:
+<strong id="scheduleText">Friday, March 13 at 12:00 PM</strong>
+</div>
+
+<button class="confirm-btn" id="confirmSchedule">Confirm Schedule</button>
+</aside>
+
+<nav class="bottom-nav driver-bottom-nav" aria-label="Passenger navigation">
+<button class="nav-item" data-page="app-home.html" onclick="location.href='app-home.html'">
+<svg viewBox="0 0 24 24" aria-hidden="true" class="nav-icon">
+<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"></path>
+</svg>
+<span>Home</span>
+</button>
+<button class="nav-item active" data-page="dashboard.html" aria-current="page">
+<svg viewBox="0 0 24 24" aria-hidden="true" class="nav-icon">
+<path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11v6a1 1 0 0 1-1 1h-1a2 2 0 1 1-4 0H11a2 2 0 1 1-4 0H6a1 1 0 0 1-1-1v-6Z"></path>
+</svg>
+<span>Book</span>
+</button>
+<button class="nav-item" id="footerHelp" data-page="help" onclick="location.href='help.html'">
+<svg viewBox="0 0 24 24" aria-hidden="true" class="nav-icon">
+<path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 15a1 1 0 1 1 1-1 1 1 0 0 1-1 1Zm2.2-7.4-.7.6a2.7 2.7 0 0 0-.9 2.1v.2h-1.8v-.4a3.8 3.8 0 0 1 1.3-2.9l.9-.8a1.8 1.8 0 1 0-3.1-1.3H7.9a3.6 3.6 0 1 1 6.3 2.5Z"></path>
+</svg>
+<span>Help</span>
+</button>
+<button class="nav-item" data-page="app-home.html" onclick="localStorage.setItem('wow_open_profile','1');location.href='app-home.html'">
+<svg viewBox="0 0 24 24" aria-hidden="true" class="nav-icon">
+<path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.42 0-8 2-8 4v2h16v-2c0-2-3.58-4-8-4Z"></path>
+</svg>
+<span>Profile</span>
+</button>
+</nav>
+
+<script src="js/dashboard.js?v=20260413-7"></script>
+
+<script async
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwePRiaRG6kTDQsU9JcNXI-CLXEP-X4ds&libraries=places&callback=initMap">
+</script>
+
+</body>
+</html>
+
+

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#9a48ff">
+  <title>Passenger Ride - Women on Wheels</title>
+  <link rel="stylesheet" href="css/passenger-ride.css?v=20260413-2">
+  <link rel="stylesheet" href="css/passenger-unified.css?v=20260412-1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="js/wow-role-guard.js?v=20260411-1"></script>
+</head>
+<body class="passenger-shell">
+  <header class="ride-topbar">
+    <button class="back-btn" type="button" onclick="history.back()">
+      <span class="back-icon">&#8592;</span>
+      <span class="back-text">Back</span>
+    </button>
+    <div>
+      <span>Ride in Progress</span>
+      <strong id="passengerName">Passenger</strong>
+    </div>
+  </header>
+
+  <main class="ride-shell">
+    <section class="ride-map">
+      <div id="passengerRideMap"></div>
+      <div class="eta-pill">
+        <span>ETA</span>
+        <strong id="passengerEta">9 min</strong>
+      </div>
+    </section>
+
+    <section class="vehicle-card">
+      <div class="vehicle-badge" id="vehicleBadge">Car</div>
+      <div class="vehicle-info">
+        <strong id="vehicleType">WOW Car</strong>
+        <span id="vehicleModel">Suzuki Alto · White</span>
+        <span class="driver-name" id="driverName">Driver</span>
+      </div>
+      <div class="driver-photo" id="driverPhoto">AS</div>
+    </section>
+
+    <section class="trip-card">
+      <div class="trip-row">
+        <span class="dot pickup-dot"></span>
+        <div>
+          <span class="trip-label">Pickup</span>
+          <strong class="trip-text" id="passengerPickupText">Gulshan Block 13, Karachi</strong>
+        </div>
+      </div>
+      <div class="trip-row">
+        <span class="dot drop-dot"></span>
+        <div>
+          <span class="trip-label">Dropoff</span>
+          <strong class="trip-text" id="passengerDropText">DHA Phase 6, Karachi</strong>
+        </div>
+      </div>
+      <div class="trip-progress">
+        <div class="progress-label">
+          <span>Distance remaining</span>
+          <strong id="passengerDistance">-- km</strong>
+        </div>
+        <div class="progress-bar">
+          <span id="passengerProgress"></span>
+        </div>
+      </div>
+      <div class="trip-fare">
+        <span>Estimated Fare</span>
+        <strong id="passengerFareText">Rs. 380</strong>
+      </div>
+      <div class="trip-fare">
+        <span>Your WOW Code</span>
+        <strong id="passengerWowCode">WOW-000</strong>
+      </div>
+    </section>
+
+    <section class="contact-row">
+      <button class="contact-btn" id="passengerChat">Chat</button>
+      <button class="contact-btn" id="passengerCall">Call</button>
+      <button class="contact-btn" id="passengerHelp" onclick="location.href='help.html'">Help</button>
+    </section>
+
+    <button class="cancel-btn" id="passengerCancelRide">Cancel Ride</button>
+    <button class="sos-btn blink" id="passengerSosBtn">Emergency SOS</button>
+  </main>
+
+  <div class="modal-overlay" id="cancelOverlay"></div>
+  <div class="modal-card" id="cancelModal">
+    <h4>Cancel this ride?</h4>
+    <p>Are you sure you want to cancel this ride? This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="modal-btn outline" id="keepRideBtn">Keep Ride</button>
+      <button class="modal-btn danger" id="confirmCancelBtn">Yes, Cancel</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="sosOverlay"></div>
+  <section class="sos-panel" id="sosPanel" aria-hidden="true">
+    <div class="sos-header">
+      <button class="back-btn" id="closeSos" type="button">
+        <span class="back-icon">&#8592;</span>
+        <span class="back-text">Back</span>
+      </button>
+      <strong>Emergency SOS</strong>
+    </div>
+    <div class="sos-banner">
+      <div class="sos-icon">!</div>
+      <div class="sos-text">
+        <strong id="sosHeadline">Emergency SOS</strong>
+        <span id="sosSubtext">Press the SOS button to alert authorities and emergency contacts.</span>
+      </div>
+    </div>
+    <button class="activate-sos-btn blink" id="activateSosBtn">Activate SOS</button>
+    <section class="sos-contacts">
+      <div class="sos-contacts-head">
+        <strong>Emergency Contacts</strong>
+        <span>Add trusted contacts for instant alerts</span>
+      </div>
+      <div class="sos-contact-form">
+        <input type="text" id="contactNameInput" placeholder="Contact Name">
+        <input type="text" id="contactPhoneInput" placeholder="Phone Number">
+        <button type="button" id="saveContactBtn">Save Contact</button>
+      </div>
+      <div class="sos-contact-list" id="sosContactList"></div>
+    </section>
+    <div class="sos-info">
+      <strong>When SOS is activated:</strong>
+      <ul>
+        <li>Your live location is shared with contacts</li>
+        <li>Emergency services (15) are notified</li>
+        <li>Ride details sent to family members</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="panel-overlay" id="chatOverlay"></div>
+  <section class="chat-panel" id="chatPanel" aria-hidden="true">
+    <div class="chat-header">
+      <button class="back-btn" id="closeChat" type="button">
+        <span class="back-icon">&#8592;</span>
+        <span class="back-text">Back</span>
+      </button>
+      <div class="chat-user">
+        <div class="chat-avatar" id="chatAvatar">D</div>
+        <div>
+          <strong id="chatDriverName">Driver</strong>
+          <span class="chat-status"><span class="status-dot"></span>Driver Online</span>
+        </div>
+      </div>
+    </div>
+    <div class="chat-notice">This chat is monitored for safety. Contact numbers are masked.</div>
+    <div class="chat-body" id="chatBody"></div>
+    <div class="chat-quick">
+      <button class="quick-chip" type="button">I'm at the pickup point</button>
+      <button class="quick-chip" type="button">Please wait, in 2 min</button>
+      <button class="quick-chip" type="button">Thank you!</button>
+    </div>
+    <div class="chat-input">
+      <button class="chat-icon-btn" type="button" id="emojiBtn" aria-label="Add emoji">😊</button>
+      <input type="text" id="chatInput" placeholder="Type a message...">
+      <button id="sendChat" class="send-btn">Send</button>
+    </div>
+  </section>
+
+  <div class="panel-overlay" id="callOverlay"></div>
+  <section class="call-panel" id="callPanel" aria-hidden="true">
+    <div class="call-header">
+      <button class="back-btn" id="closeCall" type="button">
+        <span class="back-icon">&#8592;</span>
+        <span class="back-text">Back</span>
+      </button>
+      <strong>Calling Driver</strong>
+    </div>
+    <div class="call-card">
+      <div class="avatar large" id="callAvatar">AS</div>
+      <strong id="callDriverName">Driver</strong>
+      <span>Connecting...</span>
+      <div class="call-timer" id="callTimer">00:00</div>
+    </div>
+    <button class="end-call-btn" id="endCallBtn">End Call</button>
+  </section>
+
+  <script src="js/passenger-ride.js?v=20260413-4"></script>
+  <script async
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwePRiaRG6kTDQsU9JcNXI-CLXEP-X4ds&libraries=places&callback=initPassengerRideMap">
+  </script>
+</body>
+</html>
+

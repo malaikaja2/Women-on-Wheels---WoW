@@ -1,0 +1,189 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: linear-gradient(to right, #e84393, #8e44ad);
+    color: white;
+}
+
+/* NAVBAR */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 60px;
+}
+
+.logo img {
+    width: 140px;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 25px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.nav-links a:hover {
+    border-bottom: 2px solid white;
+}
+
+/* AUTH BUTTONS */
+.auth-buttons button {
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+.login-btn {
+    background: transparent;
+    color: white;
+    border: 1px solid white;
+}
+
+.signup-btn {
+    background: white;
+    color: purple;
+}
+
+/* HERO SECTION */
+.hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 80px 100px;
+}
+
+.hero-content {
+    max-width: 50%;
+}
+
+.hero-content h1 {
+    font-size: 50px;
+    margin-bottom: 20px;
+}
+
+.hero-content p {
+    font-size: 18px;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+/* GET STARTED BUTTON */
+.get-started-btn {
+    padding: 14px 30px;
+    border-radius: 30px;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    background: white;
+    color: #e84393;
+    transition: 0.3s;
+}
+
+.get-started-btn:hover {
+    transform: scale(1.05);
+}
+
+/* HERO IMAGE */
+.hero-image img {
+    width: 500px;
+    border-radius: 20px;
+}
+
+/* FOOTER */
+footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 50px;
+    font-size: 14px;
+}
+.slogan {
+    font-size: 22px;
+    margin-bottom: 15px;
+    font-weight: 600;
+    color: #ffe6f2;
+}
+
+/* NAVBAR PURPLE BUTTONS */
+.auth-buttons a {
+    padding: 8px 20px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-left: 10px;
+    transition: 0.3s;
+    background: #8e44ad;   /* Purple */
+    color: white;
+    border: none;
+}
+
+.auth-buttons a:hover {
+    background: #732d91;   /* Darker purple on hover */
+    transform: scale(1.05);
+}
+/* Book Button */
+.book-btn {
+    background: white;
+    color: #e84393;
+}
+
+/* Login Button */
+.login-btn {
+    border: 1px solid white;
+    color: white;
+}
+
+/* Signup Button */
+.signup-btn {
+    background: #fff;
+    color: #8e44ad;
+}
+
+/* Hero Button */
+.get-started-btn {
+    display: inline-block;
+    padding: 14px 30px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+    background: white;
+    color: #e84393;
+    transition: 0.3s;
+}
+
+.get-started-btn:hover,
+.book-btn:hover {
+    transform: scale(1.05);
+}
+.get-started-btn {
+    display: inline-block;
+    padding: 14px 30px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+    background: white;
+    color: #e84393;
+    transition: 0.3s;
+}
+
+.get-started-btn:hover {
+    transform: scale(1.05);
+}

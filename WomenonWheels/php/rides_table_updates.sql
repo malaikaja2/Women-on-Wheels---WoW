@@ -1,0 +1,27 @@
+CREATE TABLE IF NOT EXISTS rides (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  ride_code VARCHAR(64) NOT NULL UNIQUE,
+  passenger_id INT NOT NULL,
+  driver_id INT NULL,
+  pickup VARCHAR(255) NOT NULL,
+  dropoff VARCHAR(255) NOT NULL,
+  pickup_lat DECIMAL(10,7) NULL,
+  pickup_lng DECIMAL(10,7) NULL,
+  drop_lat DECIMAL(10,7) NULL,
+  drop_lng DECIMAL(10,7) NULL,
+  distance_km DECIMAL(8,3) NOT NULL DEFAULT 0.000,
+  duration_min DECIMAL(8,2) NOT NULL DEFAULT 0.00,
+  vehicle_type VARCHAR(20) NOT NULL,
+  traffic_level VARCHAR(10) NOT NULL,
+  time_of_day VARCHAR(10) NOT NULL,
+  fare DECIMAL(10,2) NOT NULL,
+  offered_fare DECIMAL(10,2) NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'requested',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  completed_at TIMESTAMP NULL DEFAULT NULL,
+  INDEX idx_rides_passenger_created (passenger_id, created_at),
+  INDEX idx_rides_driver_status (driver_id, status),
+  INDEX idx_rides_status_updated (status, updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+

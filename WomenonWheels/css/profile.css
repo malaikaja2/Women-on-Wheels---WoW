@@ -1,0 +1,140 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Manrope", "Segoe UI", Tahoma, sans-serif;
+  background: #f7f3fb;
+  color: #2d1d3d;
+  min-height: 100vh;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 18px;
+  background: linear-gradient(90deg, #9a48ff 0%, #f06aa5 100%);
+  color: #fff;
+}
+
+.back-btn {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #5a2a77;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  min-height: 28px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(78, 36, 118, 0.18);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.back-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(78, 36, 118, 0.22);
+}
+
+.back-btn .back-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.back-btn .back-text {
+  font-size: 10px;
+  letter-spacing: 0.2px;
+}
+
+.profile-main {
+  padding: 18px;
+  display: grid;
+  gap: 16px;
+}
+
+.profile-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eadff4;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #8b4bff;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.profile-card strong {
+  font-size: 14px;
+}
+
+.profile-card span {
+  font-size: 10px;
+  color: #7f6e8e;
+}
+
+.profile-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.profile-info div {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #eadff4;
+  padding: 12px;
+  display: grid;
+  gap: 4px;
+}
+
+.profile-info span {
+  font-size: 9px;
+  color: #7f6e8e;
+}
+
+.profile-info strong {
+  font-size: 12px;
+}
+
+.profile-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-actions .primary {
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #8b4bff 0%, #e4559e 100%);
+  color: #fff;
+  padding: 12px 0;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profile-actions .outline {
+  border: 1px solid #b67dff;
+  background: #fff;
+  color: #7d43e8;
+  border-radius: 999px;
+  padding: 12px 0;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}

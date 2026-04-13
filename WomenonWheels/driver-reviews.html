@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Driver Reviews - Women on Wheels</title>
+  <link rel="stylesheet" href="css/driver-reviews.css">
+  <link rel="stylesheet" href="css/driver-nav.css?v=20260412-3">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="reviews-header">
+  <button class="back-btn" type="button" data-driver-back data-fallback="driver-dashboard.html">
+      <span class="back-icon">&#8592;</span>
+      <span class="back-text">Back</span>
+    </button>
+    <div>
+      <span>Driver Reviews</span>
+      <strong id="reviewDriverName">Driver</strong>
+    </div>
+  </header>
+
+  <main class="reviews-main">
+    <section class="summary-card">
+      <div class="rating-badge">
+        <strong>4.9</strong>
+        <span>Overall</span>
+      </div>
+      <div>
+        <div class="stars">★★★★★</div>
+        <p>Based on recent passenger feedback</p>
+      </div>
+    </section>
+
+    <section class="reviews-list">
+      <article class="review-item">
+        <div class="review-top">
+          <strong>Passenger A.</strong>
+          <span class="review-rating">★★★★★</span>
+        </div>
+        <p>Very polite and smooth ride.</p>
+        <span class="review-time">Today</span>
+      </article>
+      <article class="review-item">
+        <div class="review-top">
+          <strong>Passenger B.</strong>
+          <span class="review-rating">★★★★☆</span>
+        </div>
+        <p>Reached quickly and safely.</p>
+        <span class="review-time">Yesterday</span>
+      </article>
+      <article class="review-item">
+        <div class="review-top">
+          <strong>Passenger C.</strong>
+          <span class="review-rating">★★★★★</span>
+        </div>
+        <p>Helpful and friendly driver.</p>
+        <span class="review-time">Mar 10</span>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const storedName = localStorage.getItem('wow_user_name') || '';
+    const storedEmail = localStorage.getItem('wow_user_email') || '';
+    const name = storedName || storedEmail.split('@')[0] || 'Driver';
+    document.getElementById('reviewDriverName').textContent = name;
+
+    const list = document.querySelector('.reviews-list');
+    let storedReviews = [];
+    try {
+      storedReviews = JSON.parse(localStorage.getItem('wow_driver_reviews') || '[]');
+    } catch (e) {
+      storedReviews = [];
+    }
+
+    if (list && storedReviews.length) {
+      storedReviews.forEach(review => {
+        const item = document.createElement('article');
+        item.className = 'review-item';
+        const stars = '★★★★★'.slice(0, review.rating) + '☆☆☆☆☆'.slice(0, 5 - review.rating);
+        item.innerHTML = `
+          <div class="review-top">
+            <strong>${review.passenger || 'Passenger'}</strong>
+            <span class="review-rating">${stars}</span>
+          </div>
+          <p>${review.comment || 'Great ride!'}</p>
+          <span class="review-time">${review.date || 'Today'}</span>
+        `;
+        list.prepend(item);
+      });
+    }
+  </script>
+  <script>
+    const backBtn = document.querySelector('[data-driver-back]');
+    if (backBtn) {
+      backBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = 'driver-dashboard.html';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
