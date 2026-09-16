@@ -1,0 +1,2814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#9a48ff">
+  <title>Women on Wheels - Home</title>
+  <link rel="stylesheet" href="css/driver-dashboard.css?v=20260411-2">
+  <link rel="stylesheet" href="css/app-home.css?v=20260723-profile2">
+  <link rel="stylesheet" href="css/passenger-unified.css?v=20260728-nav2">
+  <link rel="stylesheet" href="css/passenger-chatbot.css?v=20260706-chatbot2">
+  <link rel="stylesheet" href="css/passenger-dashboard.css?v=20260730-notify1">
+  <link rel="stylesheet" href="css/wow-change-password.css?v=20260730-1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="js/wow-role-guard.js?v=20260411-1"></script>
+
+  <style>
+    html,
+    body {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      overflow-x: hidden;
+      background: #f7f2ff;
+    }
+    body.app-home-shell {
+      min-height: 100vh;
+      padding-top: 10px;
+    }
+    .app-home-shell .home-header,
+    .app-home-shell .home-main {
+      width: min(1320px, calc(100% - 24px));
+    }
+    .app-home-shell .bottom-nav.driver-bottom-nav {
+      position: fixed;
+      left: 50%;
+      right: auto;
+      top: auto;
+      bottom: max(10px, env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      width: min(980px, calc(100% - 16px));
+      z-index: 80;
+    }
+    .app-home-shell .driver-hero {
+      overflow: clip;
+    }
+    .app-home-shell .driver-hero::before,
+    .app-home-shell .driver-hero::after {
+      display: none !important;
+    }
+    .app-home-shell .profile-panel,
+    .app-home-shell .notifications-panel,
+    .app-home-shell .subpanel {
+      box-shadow: none;
+    }
+    .app-home-shell .profile-panel.is-open,
+    .app-home-shell .notifications-panel.is-open,
+    .app-home-shell .subpanel.is-open {
+      box-shadow: -14px 0 32px rgba(26, 8, 46, 0.22);
+    }
+    .app-home-shell .home-header { border-radius: 28px; padding: 22px; }
+    .app-home-shell .home-header::after { display: none; }
+    .app-home-shell .home-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+    .app-home-shell .home-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    #openNotifications { position:relative; }
+    #openNotifications.has-unread::after { content:attr(data-unread); position:absolute; top:-6px; right:-6px; min-width:18px; height:18px; padding:0 4px; border-radius:999px; display:grid; place-items:center; background:#ef2a5f; color:#fff; border:2px solid #fff; font-size:10px; font-weight:800; line-height:1; }
+    .app-home-brand { display:inline-flex; align-items:center; gap:14px; color:#fff; text-decoration:none; }
+    .app-home-brand span { display:block; font-size:12px; opacity:.88; }
+    .app-home-brand strong { font-size:18px; letter-spacing:.2px; }
+    .app-home-hero-grid { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(280px,.9fr) auto; gap:14px; margin-top:18px; align-items:stretch; }
+    .app-home-copy h1 { margin-top:8px; font-size:clamp(26px,4vw,42px); line-height:1.06; max-width:12ch; }
+    .app-home-copy .home-greeting { margin-top:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .app-home-copy .home-greeting span, .app-home-copy .home-greeting strong { color:rgba(255,255,255,.96); font-size:14px; }
+    .app-home-copy .home-greeting strong { font-weight:800; }
+    .app-home-shell .home-main { display:grid; gap:16px; margin-top:16px; }
+    .app-home-shell .ride-card { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:14px; padding:16px; text-decoration:none; color:inherit; }
+    .app-home-shell .ride-icon,
+    .app-home-shell .quick-icon,
+    .app-home-shell .ride-dot { width:42px; height:42px; border-radius:14px; display:grid; place-items:center; color:#7f45dd; background:linear-gradient(135deg, rgba(143,67,255,.13), rgba(235,95,162,.14)); }
+    .app-home-shell .ride-arrow { font-size:28px; color:#ad95cc; line-height:1; }
+    .app-home-shell .ride-card strong { display:block; font-size:16px; color:#38214f; }
+    .app-home-shell .ride-card p { margin-top:4px; color:#7f6e8e; font-size:13px; }
+    .app-home-shell .quick-actions,
+    .app-home-shell .recent-rides { padding:16px; border:1px solid var(--wow-border); border-radius:22px; box-shadow:0 12px 30px rgba(71,33,100,.08); background:var(--wow-surface); }
+    .app-connected-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    .app-connected-card { padding:18px; border:1px solid var(--wow-border); border-radius:22px; box-shadow:0 12px 30px rgba(71,33,100,.08); background:var(--wow-surface); min-width:0; }
+    .app-connected-card h3 { margin:0 0 12px; color:#35204a; }
+    .home-data-row { display:flex; align-items:center; justify-content:space-between; gap:14px; }
+    .home-data-row div { display:grid; gap:5px; min-width:0; }
+    .home-data-row strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .home-data-row span,.home-empty { color:var(--wow-muted); font-size:13px; }
+    .home-section-action { flex:0 0 auto; padding:10px 13px; border:0; border-radius:13px; color:#fff; background:var(--wow-grad); text-decoration:none; font:800 12px/1 Manrope,sans-serif; cursor:pointer; }
+    .scheduled-card { display:grid; gap:14px; }
+    .scheduled-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+    .scheduled-card-date { display:grid; gap:2px; min-width:0; }
+    .scheduled-card-date strong { color:#35204a; font-size:16px; }
+    .scheduled-card-date span,.scheduled-ride-id { color:var(--wow-muted); font-size:11px; }
+    .scheduled-status { flex:0 0 auto; padding:6px 10px; border-radius:999px; background:#f0e9ff; color:#7140c7; font-size:10px; font-weight:800; white-space:nowrap; }
+    .scheduled-status.on-way,.scheduled-status.arriving { background:#fff0f7; color:#bd397e; }
+    .scheduled-route { position:relative; display:grid; gap:12px; padding-left:22px; }
+    .scheduled-route::before { content:""; position:absolute; left:6px; top:10px; bottom:10px; width:2px; background:#e1d4ef; }
+    .scheduled-stop { position:relative; display:grid; gap:2px; min-width:0; }
+    .scheduled-stop::before { content:""; position:absolute; left:-21px; top:5px; width:10px; height:10px; border-radius:50%; background:#8b48dd; box-shadow:0 0 0 4px #f3ebff; }
+    .scheduled-stop.drop::before { background:#e650a1; box-shadow:0 0 0 4px #fff0f7; }
+    .scheduled-stop span { color:var(--wow-muted); font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; }
+    .scheduled-stop strong { color:#3d2850; font-size:13px; line-height:1.4; overflow-wrap:anywhere; }
+    .scheduled-meta { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+    .scheduled-meta-item { min-width:0; padding:10px; border-radius:14px; background:#faf7fd; border:1px solid #efe5f7; }
+    .scheduled-meta-item span { display:block; color:var(--wow-muted); font-size:10px; margin-bottom:4px; }
+    .scheduled-meta-item strong { display:block; color:#402b52; font-size:12px; overflow-wrap:anywhere; }
+    .scheduled-driver { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:10px; padding:11px; border-radius:16px; background:linear-gradient(135deg,#f7f0ff,#fff5fa); }
+    .scheduled-driver-avatar { width:38px; height:38px; display:grid; place-items:center; border-radius:13px; background:var(--wow-grad); color:#fff; font-size:12px; font-weight:800; }
+    .scheduled-driver-info { min-width:0; }
+    .scheduled-driver-info strong,.scheduled-driver-info span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .scheduled-driver-info strong { color:#38244c; font-size:13px; }
+    .scheduled-driver-info span { margin-top:3px; color:var(--wow-muted); font-size:11px; }
+    .scheduled-actions { display:flex; flex-wrap:wrap; gap:8px; }
+    .scheduled-action { min-height:38px; display:inline-flex; align-items:center; justify-content:center; padding:0 13px; border-radius:12px; border:1px solid #dbc9ea; background:#fff; color:#694092; text-decoration:none; font:800 11px/1 Manrope,sans-serif; cursor:pointer; }
+    .scheduled-action.primary { border-color:transparent; background:var(--wow-grad); color:#fff; }
+    .scheduled-action.danger { color:#b62e62; border-color:#f0bfd1; }
+    .scheduled-empty { min-height:178px; display:grid; place-items:center; align-content:center; gap:7px; text-align:center; padding:18px; border:1px dashed #dbc9ea; border-radius:17px; background:#fcf9ff; }
+    .scheduled-empty-icon { width:42px; height:42px; display:grid; place-items:center; border-radius:14px; background:#f0e7ff; color:#7b43d1; font-size:20px; }
+    .scheduled-empty strong { color:#38244c; font-size:15px; }
+    .scheduled-empty p { margin:0; color:var(--wow-muted); font-size:12px; }
+    .scheduled-skeleton { display:grid; gap:11px; }
+    .scheduled-skeleton span { display:block; border-radius:10px; background:linear-gradient(90deg,#f1ebf6 25%,#faf7fd 50%,#f1ebf6 75%); background-size:200% 100%; animation:scheduledShimmer 1.25s infinite; }
+    .scheduled-skeleton .sk-head { width:58%; height:20px; }
+    .scheduled-skeleton .sk-route { width:100%; height:54px; }
+    .scheduled-skeleton .sk-meta { width:100%; height:46px; }
+    .scheduled-skeleton .sk-action { width:110px; height:38px; }
+    @keyframes scheduledShimmer { to { background-position:-200% 0; } }
+    .app-home-shell .quick-actions h3,
+    .app-home-shell .recent-rides h3 { margin:0; font-size:17px; color:#35204a; }
+    .app-home-shell .quick-grid { margin-top:12px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .app-home-shell .quick-item { min-height:96px; padding:12px; border-radius:18px; background:#fff; border:1px solid var(--wow-border); display:grid; gap:8px; justify-items:start; align-content:start; text-align:left; font:inherit; color:inherit; cursor:pointer; }
+    .app-home-shell .quick-item span { font-size:12px; font-weight:700; color:#4b3464; }
+    .app-home-shell .section-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+    .app-home-shell .section-head a { color:#8a4dff; text-decoration:none; font-size:12px; font-weight:700; }
+    .app-home-shell .ride-list { display:grid; gap:10px; }
+    .app-home-shell .ride-item { padding:12px; border:1px solid var(--wow-border); border-radius:16px; background:#fff; display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:10px; align-items:center; }
+    .app-home-shell .ride-content strong { display:block; font-size:13px; color:#3b2452; }
+    .app-home-shell .ride-content span { display:block; margin-top:3px; font-size:11px; color:#8a7a9b; }
+    .app-home-shell .ride-meta { display:grid; justify-items:end; gap:6px; }
+    .app-home-shell .ride-status { border-radius:999px; padding:4px 10px; font-size:10px; font-weight:700; }
+    .app-home-shell .ride-status.completed { background:#e9f9f1; color:#187850; }
+    .app-home-shell .ride-status.booked { background:#efe8ff; color:#6e3dd0; }
+    .app-home-shell .ride-price strong { display:block; font-size:12px; text-align:right; color:#38214f; }
+    .app-home-shell .ride-rating { font-size:11px; color:#b2882d; }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(25, 11, 38, 0.54);
+      backdrop-filter: blur(5px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s ease;
+      z-index: 120;
+    }
+    .modal-overlay.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .bot-panel {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s ease;
+      z-index: 121;
+    }
+    .bot-panel.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .bot-window {
+      width: min(560px, 100%);
+      max-height: min(82vh, 760px);
+      display: grid;
+      grid-template-rows: auto 1fr auto auto;
+      overflow: hidden;
+      border-radius: 24px;
+      border: 1px solid var(--wow-border);
+      background: linear-gradient(180deg, #ffffff 0%, #fcf8ff 100%);
+      box-shadow: 0 26px 70px rgba(35, 10, 59, 0.34);
+      transform: translateY(10px) scale(0.98);
+      transition: transform 0.22s ease;
+    }
+    .bot-panel.is-open .bot-window {
+      transform: translateY(0) scale(1);
+    }
+    .bot-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 14px 12px;
+      border-bottom: 1px solid #efdefc;
+      background: linear-gradient(145deg, rgba(143, 67, 255, 0.09), rgba(235, 95, 162, 0.08));
+    }
+    .bot-title strong {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      display: block;
+      font-size: 17px;
+      color: #3a2251;
+    }
+    .assistant-mark {
+      width: 18px;
+      height: 18px;
+      display: inline-grid;
+      place-items: center;
+      color: #7f45dd;
+    }
+    .assistant-mark svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+    .bot-subtitle {
+      display: block;
+      margin-top: 2px;
+      font-size: 12px;
+      color: #7f6e8e;
+    }
+    .bot-close-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      color: #7f45dd;
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid #d9c0f7;
+    }
+    .bot-body {
+      padding: 12px 14px;
+      overflow: auto;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      background: #fff;
+      min-height: 180px;
+    }
+    .bot-bubble {
+      max-width: min(86%, 430px);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-line;
+      word-break: break-word;
+      box-shadow: 0 8px 20px rgba(81, 36, 117, 0.1);
+    }
+    .bot-bubble.bot {
+      justify-self: start;
+      background: #f4eaff;
+      color: #472761;
+      border: 1px solid #e4cef9;
+    }
+    .bot-bubble.user {
+      justify-self: end;
+      background: linear-gradient(140deg, #9a48ff 0%, #ef67a8 100%);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+    }
+    .bot-typing {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .typing-dots {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .typing-dots span {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #9661e6;
+      animation: botDot 0.95s infinite ease-in-out;
+      opacity: 0.7;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.12s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.24s; }
+    @keyframes botDot {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+      40% { transform: translateY(-3px); opacity: 1; }
+    }
+    .bot-quick {
+      padding: 10px 14px 12px;
+      border-top: 1px solid #efdefc;
+      background: #fff;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .bot-quick .quick-chip {
+      border: 1px solid #dcc3fa;
+      border-radius: 999px;
+      background: #f9f3ff;
+      color: #7242cf;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 11px;
+      cursor: pointer;
+      line-height: 1.2;
+    }
+    .bot-input {
+      padding: 10px 14px 14px;
+      border-top: 1px solid #efdefc;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      background: #fff;
+    }
+    .bot-input input {
+      min-height: 42px;
+      border-radius: 12px;
+      border: 1px solid #d9c0f7;
+      padding: 0 12px;
+      font: inherit;
+      font-size: 13px;
+      color: #36214d;
+      outline: none;
+      background: #fdfbff;
+    }
+    .bot-input input:focus {
+      border-color: #9657f6;
+      box-shadow: 0 0 0 3px rgba(150, 87, 246, 0.13);
+    }
+    .send-icon {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #9a48ff 0%, #ef67a8 100%);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(135, 57, 222, 0.25);
+    }
+    .send-icon:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .send-icon svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+    .bot-cancel-btn {
+      min-width: 84px;
+      min-height: 42px;
+      border: 1px solid #d9c0f7;
+      border-radius: 12px;
+      background: #fff;
+      color: #7f45dd;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bot-cancel-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(135, 57, 222, 0.15);
+    }
+    @media (max-width:1080px){ .app-home-shell .app-home-hero-grid { grid-template-columns:1fr; } }
+    @media (max-width:820px){ .app-home-shell .quick-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media (max-width:720px){ body.app-home-shell{ padding-top:8px;} .app-home-shell .home-header, .app-home-shell .home-main{ width:min(1320px, calc(100% - 16px)); } .app-home-shell .bottom-nav.driver-bottom-nav{ width:calc(100% - 10px);} .app-home-shell .home-header{ border-radius:22px; padding:18px;} .app-home-shell .ride-card{ grid-template-columns:auto minmax(0,1fr); } .app-home-shell .ride-arrow{ display:none; } .app-home-shell .ride-item{ grid-template-columns:auto minmax(0,1fr); } .app-home-shell .ride-meta{ justify-items:start; } .bot-panel{ padding: 10px 8px; align-items:end; } .bot-window{ max-height:min(88vh, 780px); border-radius:18px; } .bot-header{ padding:12px; } .bot-body{ padding:10px 12px; } .bot-quick{ padding:8px 12px 10px; } .bot-input{ padding:8px 12px 12px; } }
+    @media (max-width:720px){ .app-connected-grid{ grid-template-columns:1fr; } }
+    @media (max-width:520px){ .app-home-shell .quick-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } .app-home-shell .home-top{ align-items:flex-start; } .home-data-row{ align-items:flex-start; flex-direction:column; } .scheduled-meta{grid-template-columns:repeat(2,minmax(0,1fr));}.scheduled-actions{display:grid;grid-template-columns:1fr 1fr;}.scheduled-action.primary{grid-column:1/-1;} }
+  </style>
+</head>
+<body class="passenger-shell has-bottom-nav app-home-shell">
+    <header class="home-header driver-hero">
+    <div class="home-top">
+      <a class="app-home-brand" href="app-home.html" aria-label="Women on Wheels passenger dashboard">
+        <span class="passenger-logo-frame"><img src="images/logo.png" alt="Women on Wheels" class="home-logo brand-logo"></span>
+        <div>
+          <span>Women on Wheels</span>
+          <strong>Passenger Dashboard</strong>
+        </div>
+      </a>
+      <div class="passenger-header-greeting">
+        <span id="homeGreeting">Good Evening</span>
+        <strong id="homeName">Guest</strong>
+      </div>
+      <nav class="passenger-desktop-nav" aria-label="Passenger primary navigation">
+        <a class="is-active" href="app-home.html">Home</a>
+        <a href="dashboard.html">Book</a>
+        <a href="activity.html">Activity</a>
+        <a href="help.html">Help</a>
+      </nav>
+      <div class="home-actions">
+        <button class="icon-btn" aria-label="Notifications" id="openNotifications">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2Zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2Z"></path></svg>
+        </button>
+        <button class="icon-btn" aria-label="AI Assistant" id="homeChatbot">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon"><path d="M12 3a7 7 0 0 0-7 7v4a3 3 0 0 0 3 3h2v2h4v-2h2a3 3 0 0 0 3-3v-4a7 7 0 0 0-7-7Zm-2 6h4v2h-4Zm6 0h2v2h-2Z"></path></svg>
+        </button>
+        <button class="icon-btn" aria-label="Profile" id="openProfile" aria-controls="profilePanel" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.42 0-8 2-8 4v2h16v-2c0-2-3.58-4-8-4Z"></path></svg>
+        </button>
+      </div>
+    </div>
+    <div class="app-home-hero-grid hero-grid">
+      <section class="hero-copy app-home-copy">
+        <p class="eyebrow">Live Overview</p>
+        <h1>Passenger Dashboard</h1>
+        <p class="hero-text">Book rides, check recent trips, and access support tools from one clean workspace.</p>
+        <div class="home-greeting">
+        </div>
+      </section>
+      <section class="toggle-card">
+        <div>
+          <span class="toggle-label">Quick Action</span>
+          <strong>Book a Ride</strong>
+          <p>Open booking with one tap and start your trip instantly.</p>
+        </div>
+        <button class="primary-btn" type="button" onclick="location.href='dashboard.html'">Open</button>
+      </section>
+      <button class="sos-btn" id="homeSos" type="button">
+        <span class="sos-ring"></span>
+        <span>
+          <strong>SOS</strong>
+          <small>Emergency alert</small>
+        </span>
+      </button>
+    </div>
+  </header>
+
+  <main class="home-main">
+    <section class="quick-actions">
+      <h3>Quick Actions</h3>
+      <div class="quick-grid">
+        <button class="quick-item" onclick="location.href='dashboard.html'">
+          <div class="quick-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+              <path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11v6a1 1 0 0 1-1 1h-1a2 2 0 1 1-4 0H11a2 2 0 1 1-4 0H6a1 1 0 0 1-1-1v-6Z"></path>
+            </svg>
+          </div>
+          <span>Car Ride</span>
+        </button>
+        <button class="quick-item" onclick="location.href='dashboard.html'">
+          <div class="quick-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+              <path d="M5 12a3 3 0 1 0 3 3 3 3 0 0 0-3-3Zm14 0a3 3 0 1 0 3 3 3 3 0 0 0-3-3Zm-8.5-4h3L15 11h-6Z"></path>
+            </svg>
+          </div>
+          <span>Bike Ride</span>
+        </button>
+        <button class="quick-item" onclick="location.href='dashboard.html'">
+          <div class="quick-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+              <path d="M7 14a3 3 0 1 0 3 3 3 3 0 0 0-3-3Zm10 0a3 3 0 1 0 3 3 3 3 0 0 0-3-3ZM9 7h5l2 4h-5Z"></path>
+            </svg>
+          </div>
+          <span>Scooty Ride</span>
+        </button>
+        <button class="quick-item" onclick="location.href='dashboard.html?section=schedule'">
+          <div class="quick-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+              <path d="M7 2h2v2h6V2h2v2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2Zm12 8H5v10h14Zm-9 2h4v4h-4Z"></path>
+            </svg>
+          </div>
+          <span>Schedule Ride</span>
+        </button>
+        <button class="quick-item" onclick="location.href='activity.html'"><div class="quick-icon">↻</div><span>Ride History</span></button>
+        <button class="quick-item" onclick="location.href='lost-found.html'"><div class="quick-icon">⌕</div><span>Lost &amp; Found</span></button>
+        <button class="quick-item" onclick="location.href='help.html'"><div class="quick-icon">?</div><span>Support</span></button>
+      </div>
+    </section>
+
+    <section class="app-connected-grid" id="appConnectedSections" aria-label="Current and scheduled rides">
+      <article class="app-connected-card">
+        <h3>Current Ride</h3>
+        <div id="activeRideSummary"><p class="home-empty">Loading active ride...</p></div>
+      </article>
+      <article class="app-connected-card">
+        <h3>Scheduled Ride</h3>
+        <div id="scheduledRideSummary" aria-live="polite">
+          <div class="scheduled-skeleton" aria-label="Loading scheduled ride">
+            <span class="sk-head"></span><span class="sk-route"></span><span class="sk-meta"></span><span class="sk-action"></span>
+          </div>
+        </div>
+      </article>
+      <article class="app-connected-card">
+        <h3>Important Notifications</h3>
+        <div id="importantNotificationSummary">
+          <p class="home-empty">Loading notifications...</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="recent-rides">
+      <div class="section-head">
+        <h3>Recent Rides</h3>
+        <a href="activity.html" id="viewAllRecentRides">View All</a>
+      </div>
+      <div class="ride-list">
+        <div class="empty-state"><p>Loading your recent rides...</p></div>
+      </div>
+    </section>
+  </main>
+  <nav class="bottom-nav driver-bottom-nav" aria-label="Passenger navigation">
+    <a class="nav-item active" href="app-home.html" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="nav-icon icon"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"></path></svg>
+      <span>Home</span>
+    </a>
+    <a class="nav-item" href="activity.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="nav-icon icon"><path d="M4 5h16v2H4Zm0 6h16v2H4Zm0 6h10v2H4Z"></path></svg>
+      <span>Activity</span>
+    </a>
+    <a class="nav-item" href="dashboard.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="nav-icon icon"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11v6a1 1 0 0 1-1 1h-1a2 2 0 1 1-4 0H11a2 2 0 1 1-4 0H6a1 1 0 0 1-1-1v-6Z"></path></svg>
+      <span>Book</span>
+    </a>
+    <button class="nav-item" type="button" data-open-notification-drawer>
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="nav-icon icon"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2Zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2Z"></path></svg>
+      <span>Alerts</span>
+    </button>
+    <a class="nav-item" id="bottomHelp" href="help.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="nav-icon icon"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 15a1 1 0 1 1 1-1 1 1 0 0 1-1 1Zm2.2-7.4-.7.6a2.7 2.7 0 0 0-.9 2.1v.2h-1.8v-.4a3.8 3.8 0 0 1 1.3-2.9l.9-.8a1.8 1.8 0 1 0-3.1-1.3H7.9a3.6 3.6 0 1 1 6.3 2.5Z"></path></svg>
+      <span>Help</span>
+    </a>
+    <button class="nav-item" id="bottomProfile" type="button" aria-controls="profilePanel" aria-expanded="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="nav-icon icon"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.42 0-8 2-8 4v2h16v-2c0-2-3.58-4-8-4Z"></path></svg>
+      <span>Profile</span>
+    </button>
+  </nav>
+
+  <div class="modal-overlay" id="botOverlay"></div>
+  <section class="bot-panel" id="botPanel" aria-hidden="true">
+    <div class="bot-window">
+    <div class="bot-header">
+      <div class="bot-title">
+        <div>
+          <strong><span class="assistant-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a7 7 0 0 0-7 7v4a3 3 0 0 0 3 3h2v2h4v-2h2a3 3 0 0 0 3-3v-4a7 7 0 0 0-7-7Zm-2 6h4v2h-4Zm6 0h2v2h-2Z"></path></svg></span>WOW Assistant</strong>
+          <span class="bot-subtitle">Your Ride Support Companion</span>
+        </div>
+      </div>
+      <button class="icon-btn bot-close-btn" id="closeBot" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+          <path d="M6 6l12 12M18 6l-12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="bot-body" id="botBody"></div>
+    <div class="bot-quick">
+      <button class="quick-chip" type="button">Book Ride Help</button>
+      <button class="quick-chip" type="button">Fare Info</button>
+      <button class="quick-chip" type="button">Distance</button>
+      <button class="quick-chip" type="button">Ride Status</button>
+      <button class="quick-chip" type="button">Cancel Ride</button>
+    </div>
+    <div class="bot-input">
+      <input type="text" id="botInput" placeholder="Ask a question...">
+      <button id="cancelBot" class="bot-cancel-btn" type="button">Cancel</button>
+      <button id="sendBot" class="send-icon" aria-label="Send message">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 12l18-9-6 18-3-7-9-2Z"></path>
+        </svg>
+      </button>
+    </div>
+    </div>
+  </section>
+
+  <div class="profile-overlay" id="profileOverlay"></div>
+  <aside class="profile-panel" id="profilePanel" aria-hidden="true">
+    <div class="profile-panel-header">
+      <strong>Profile</strong>
+      <button class="icon-btn" id="closeProfile" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+          <path d="M6 6l12 12M18 6l-12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="profile-panel-card">
+      <div class="avatar-circle" id="profileInitial">M</div>
+      <div>
+        <strong id="profileName">Guest</strong>
+        <span id="profileEmail">guest@wow.com</span>
+        <span id="profilePhoneRole">Passenger</span>
+        <div class="profile-rating" id="profileRating" hidden></div>
+      </div>
+    </div>
+    <div class="profile-options">
+      <button class="profile-item" data-panel="editProfilePanel">
+        <span class="profile-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+            <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.42 0-8 2-8 4v2h16v-2c0-2-3.58-4-8-4Z"></path>
+          </svg>
+        </span>
+        <div>
+          <strong>Edit Profile</strong>
+          <span>Update your information</span>
+        </div>
+        <span class="profile-arrow">&#8250;</span>
+      </button>
+      <button class="profile-item wow-change-password-link" type="button" data-wow-change-password data-login-url="login.html?role=passenger" data-logout-url="php/logout.php" data-logout-method="POST">
+        <span class="profile-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+            <path d="M7 10V7a5 5 0 0 1 10 0v3h2v10H5V10Zm2 0h6V7a3 3 0 0 0-6 0Z"></path>
+          </svg>
+        </span>
+        <div>
+          <strong>Change Password</strong>
+          <span>Update your password</span>
+        </div>
+        <span class="profile-arrow">&#8250;</span>
+      </button>
+      <button class="profile-item" data-href="activity.html">
+        <span class="profile-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+            <path d="M5 3h14a2 2 0 0 1 2 2v14l-3-2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"></path>
+          </svg>
+        </span>
+        <div>
+          <strong>Ride History</strong>
+          <span>View past rides</span>
+        </div>
+        <span class="profile-arrow">&#8250;</span>
+      </button>
+      <button class="profile-item" data-panel="notificationSettingsPanel">
+        <span class="profile-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+            <path d="M12 2a6 6 0 0 1 6 6v3l2 3v2H4v-2l2-3V8a6 6 0 0 1 6-6Z"></path>
+          </svg>
+        </span>
+        <div>
+          <strong>Notification Settings</strong>
+          <span>Manage notifications</span>
+        </div>
+        <span class="profile-arrow">&#8250;</span>
+      </button>
+      <button class="profile-item" data-panel="appSettingsPanel">
+        <span class="profile-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+            <path d="m19.14 12.94.86-1.49-1.48-2.56-1.71.5a6.88 6.88 0 0 0-1.2-.69l-.25-1.78H9.64L9.39 8.7c-.42.17-.82.4-1.2.69l-1.71-.5L5 11.45l.86 1.49c-.04.3-.06.61-.06.93s.02.63.06.93L5 16.29l1.48 2.56 1.71-.5c.38.29.78.52 1.2.69l.25 1.78h5.72l.25-1.78c.42-.17.82-.4 1.2-.69l1.71.5L20 16.29l-.86-1.49c.04-.3.06-.61.06-.93s-.02-.63-.06-.93ZM12 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"></path>
+          </svg>
+        </span>
+        <div>
+          <strong>Settings</strong>
+          <span>Language, privacy & account</span>
+        </div>
+        <span class="profile-arrow">&#8250;</span>
+      </button>
+      <button class="profile-item" data-panel="safetyPanel">
+        <span class="profile-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+            <path d="M12 2 4 5v6c0 5 3.5 9.5 8 11 4.5-1.5 8-6 8-11V5Z"></path>
+          </svg>
+        </span>
+        <div>
+          <strong>Safety</strong>
+          <span>Emergency contacts & settings</span>
+        </div>
+        <span class="profile-arrow">&#8250;</span>
+      </button>
+      <button class="profile-item" data-panel="helpSupportPanel">
+        <span class="profile-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+            <path d="M12 4a8 8 0 1 0 8 8h-2a6 6 0 1 1-6-6V4Zm1 4h-2v6h6v-2h-4Z"></path>
+          </svg>
+        </span>
+        <div>
+          <strong>Help & Support</strong>
+          <span>FAQs and contact us</span>
+        </div>
+        <span class="profile-arrow">&#8250;</span>
+      </button>
+    </div>
+    <button class="logout-btn" id="profileLogout">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+        <path d="M16 17v-2h-6v-2h6V11l4 3Zm-2-9H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h8v-2H6V10h8Z"></path>
+      </svg>
+      Logout
+    </button>
+  </aside>
+
+  <aside class="subpanel" id="writeReviewPanel" aria-hidden="true">
+    <div class="subpanel-header">
+      <strong>Write a Review</strong>
+      <button class="icon-btn subpanel-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+          <path d="M6 6l12 12M18 6l-12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="subpanel-content review-form">
+      <label>
+        Select Ride
+        <select id="reviewRideSelect"></select>
+      </label>
+      <div class="rating-input">
+        <span>Rate Driver</span>
+        <div class="star-row" id="reviewStars">
+          <button type="button" class="star" data-value="1">★</button>
+          <button type="button" class="star" data-value="2">★</button>
+          <button type="button" class="star" data-value="3">★</button>
+          <button type="button" class="star" data-value="4">★</button>
+          <button type="button" class="star" data-value="5">★</button>
+        </div>
+      </div>
+      <label>
+        Comment
+        <textarea id="reviewComment" rows="3" placeholder="Share your experience..."></textarea>
+      </label>
+      <div class="subpanel-actions">
+        <button class="outline-btn subpanel-close">Cancel</button>
+        <button class="primary-btn" id="submitReview">Submit Review</button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="subpanel-overlay" id="subpanelOverlay"></div>
+
+  <aside class="subpanel" id="editProfilePanel" aria-hidden="true">
+    <div class="subpanel-header">
+      <strong>Edit Profile</strong>
+      <button class="icon-btn subpanel-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+          <path d="M6 6l12 12M18 6l-12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="subpanel-content">
+      <div class="profile-photo">
+        <div class="photo-circle" id="editPhotoPreview">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+            <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.42 0-8 2-8 4v2h16v-2c0-2-3.58-4-8-4Z"></path>
+          </svg>
+        </div>
+        <div class="profile-photo-picker">
+          <input class="profile-file-input" type="file" id="editProfileImage" accept="image/jpeg,image/png,image/webp">
+          <label class="profile-file-button" for="editProfileImage">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="icon"><path d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3Zm3 14a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z"></path></svg>
+            Choose Photo
+          </label>
+          <span class="profile-file-name" id="profileFileName">JPG, PNG or WebP · maximum 700 KB</span>
+        </div>
+      </div>
+      <label>
+        Full Name
+        <input type="text" id="editName" placeholder="Enter your full name">
+      </label>
+      <label>
+        Phone Number
+        <input type="text" id="editPhone" placeholder="+92 3XX XXXXXXX">
+      </label>
+      <label class="muted">
+        Email (Cannot be changed)
+        <input type="text" id="editEmail" disabled>
+      </label>
+      <div class="subpanel-actions">
+        <button class="outline-btn subpanel-close">Cancel</button>
+        <button class="primary-btn" id="saveProfile">Save Changes</button>
+      </div>
+      <p class="drawer-status" id="profileSaveStatus"></p>
+    </div>
+  </aside>
+
+  <aside class="subpanel" id="rideHistoryPanel" aria-hidden="true">
+    <div class="subpanel-header">
+      <strong>Ride History</strong>
+      <button class="icon-btn subpanel-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+          <path d="M6 6l12 12M18 6l-12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="subpanel-content">
+      <div class="history-tabs">
+        <button class="tab active" id="rideTabAll">All (0)</button>
+        <button class="tab" id="rideTabDone">Done (0)</button>
+        <button class="tab" id="rideTabCancelled">Cancelled (0)</button>
+      </div>
+      <div class="history-list" id="rideHistoryList"></div>
+      <div class="empty-state" id="rideHistoryEmpty">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm1 5v6h5v-2h-3V7Z"></path>
+          </svg>
+        </div>
+        <p>No rides yet. Book your first ride!</p>
+      </div>
+    </div>
+  </aside>
+
+  <aside class="subpanel" id="paymentMethodsPanel" aria-hidden="true">
+    <div class="subpanel-header">
+      <strong>Payment Methods</strong>
+      <button class="icon-btn subpanel-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+          <path d="M6 6l12 12M18 6l-12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="subpanel-content">
+      <div id="paymentMethodsList"></div>
+      <div class="drawer-form-grid" id="paymentMethodForm">
+        <label>
+          Method
+          <select id="paymentMethodType">
+            <option value="easypaisa">EasyPaisa</option>
+            <option value="jazzcash">JazzCash</option>
+          </select>
+        </label>
+        <label>
+          Account Title
+          <input type="text" id="paymentAccountTitle" maxlength="100" placeholder="Account holder name">
+        </label>
+        <label>
+          Account Number
+          <input type="text" id="paymentAccountNumber" inputmode="numeric" maxlength="13" placeholder="03XXXXXXXXX">
+        </label>
+        <button class="primary-btn" id="savePaymentMethod" type="button">Save Payment Method</button>
+      </div>
+      <p class="drawer-status" id="paymentStatus"></p>
+    </div>
+  </aside>
+
+  <aside class="subpanel" id="savedPlacesPanel" aria-hidden="true">
+    <div class="subpanel-header">
+      <strong>Saved Places</strong>
+      <button class="icon-btn subpanel-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+          <path d="M6 6l12 12M18 6l-12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="subpanel-content">
+      <div class="history-list" id="savedPlacesList"></div>
+      <div class="drawer-form-grid">
+        <label>
+          Place Type
+          <select id="placeType">
+            <option value="home">Home</option>
+            <option value="work">Work</option>
+            <option value="favorite">Favorite</option>
+          </select>
+        </label>
+        <label>
+          Place Name
+          <input type="text" id="placeName" placeholder="Home, Office, Gym">
+        </label>
+        <label>
+          Address
+          <input type="text" id="placeAddress" placeholder="Street, area, city">
+        </label>
+        <div class="drawer-two-col">
+          <label>
+            Latitude
+            <input type="text" id="placeLatitude" inputmode="decimal" placeholder="Optional">
+          </label>
+          <label>
+            Longitude
+            <input type="text" id="placeLongitude" inputmode="decimal" placeholder="Optional">
+          </label>
+        </div>
+        <button class="primary-btn" id="savePlace" type="button">Save Place</button>
+      </div>
+      <p class="drawer-status" id="placesStatus"></p>
+    </div>
+  </aside>
+
+  <aside class="subpanel" id="notificationSettingsPanel" aria-hidden="true">
+    <div class="subpanel-header">
+      <strong>Notification Settings</strong>
+      <button class="icon-btn subpanel-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+          <path d="M6 6l12 12M18 6l-12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="subpanel-content">
+      <div class="setting-row">
+        <span>Ride Updates</span>
+        <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span>Promotions</span>
+        <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span>Safety Alerts</span>
+        <label class="switch"><input type="checkbox" id="safetyAlertsToggle" checked><span class="slider"></span></label>
+      </div>
+      <p class="drawer-status" id="notificationStatus"></p>
+    </div>
+  </aside>
+
+  <aside class="subpanel" id="appSettingsPanel" aria-hidden="true">
+    <div class="subpanel-header">
+      <strong>Settings</strong>
+      <button class="icon-btn subpanel-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+          <path d="M6 6l12 12M18 6l-12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="subpanel-content">
+      <label>
+        Language
+        <select id="settingsLanguage">
+          <option value="en">English</option>
+          <option value="ur">Urdu</option>
+        </select>
+      </label>
+      <label>
+        Profile Visibility
+        <select id="settingsProfileVisibility">
+          <option value="drivers_only">Drivers during rides</option>
+          <option value="support_only">Support only</option>
+        </select>
+      </label>
+      <div class="setting-row">
+        <span>Share trip status with support</span>
+        <label class="switch"><input type="checkbox" id="settingsShareTrip" checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span>Offers and account tips</span>
+        <label class="switch"><input type="checkbox" id="settingsMarketing" checked><span class="slider"></span></label>
+      </div>
+      <button class="primary-btn" id="saveAppSettings" type="button">Save Settings</button>
+      <p class="drawer-status" id="settingsStatus"></p>
+    </div>
+  </aside>
+
+  <aside class="subpanel" id="safetyPanel" aria-hidden="true">
+    <div class="subpanel-header">
+      <strong>Safety</strong>
+      <button class="icon-btn subpanel-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+          <path d="M6 6l12 12M18 6l-12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="subpanel-content">
+      <p>Emergency contacts and safety settings will appear here.</p>
+    </div>
+  </aside>
+
+  <aside class="subpanel" id="helpSupportPanel" aria-hidden="true">
+    <div class="subpanel-header">
+      <strong>Help &amp; Support</strong>
+      <button class="icon-btn subpanel-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+          <path d="M6 6l12 12M18 6l-12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="subpanel-content">
+      <label>
+        Request Type
+        <select id="supportCategory">
+          <option value="ride_issue">Ride issue</option>
+          <option value="payment">Payment</option>
+          <option value="safety">Safety</option>
+          <option value="general">Question</option>
+        </select>
+      </label>
+      <label>
+        Related Ride
+        <select id="supportRideSelect">
+          <option value="">No ride selected</option>
+        </select>
+      </label>
+      <label>
+        Message
+        <textarea id="supportMessage" rows="4" placeholder="Tell support what happened"></textarea>
+      </label>
+      <button class="primary-btn" id="submitSupport" type="button">Submit Request</button>
+      <div class="history-list" id="supportRequestsList"></div>
+      <p class="drawer-status" id="supportStatus"></p>
+    </div>
+  </aside>
+
+  <div class="notifications-overlay" id="notificationsOverlay"></div>
+  <aside class="notifications-panel" id="notificationsPanel" aria-hidden="true">
+    <div class="notifications-header">
+      <div>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+          <path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2Zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2Z"></path>
+        </svg>
+        <strong>Notifications</strong>
+      </div>
+      <button class="icon-btn" id="closeNotifications" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+          <path d="M6 6l12 12M18 6l-12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="notifications-list">
+      <div class="empty-state"><p>Loading your notifications...</p></div>
+    </div>
+  </aside>
+
+  <script>
+    const storedName = localStorage.getItem('wow_user_name') || '';
+    const storedEmail = localStorage.getItem('wow_user_email') || '';
+    const name = storedName || storedEmail.split('@')[0] || 'Guest';
+    const hours = new Date().getHours();
+    const greeting = hours < 12 ? 'Good Morning' : hours < 17 ? 'Good Afternoon' : 'Good Evening';
+    document.getElementById('homeGreeting').textContent = greeting;
+    document.getElementById('homeName').textContent = name;
+
+    const botOverlay = document.getElementById('botOverlay');
+    const botPanel = document.getElementById('botPanel');
+    const botBody = document.getElementById('botBody');
+    const botInput = document.getElementById('botInput');
+    const cancelBotBtn = document.getElementById('cancelBot');
+    const WOW_ASSISTANT_API = 'php/wow_assistant_api.php';
+    let botRequestSeq = 0;
+
+    async function openBot() {
+      botOverlay.classList.add('is-open');
+      botPanel.classList.add('is-open');
+      botPanel.setAttribute('aria-hidden', 'false');
+      updateBotSendState();
+
+      const hasHistory = await loadAssistantHistory();
+      if (!hasHistory && !botBody.children.length) {
+        appendBot('bot', 'Hi! I am WOW Assistant. Ask me about rides, drivers, pricing, booking, or ride status.');
+      }
+      botInput.focus();
+    }
+
+    function closeBot() {
+      cancelBotSession();
+      botOverlay.classList.remove('is-open');
+      botPanel.classList.remove('is-open');
+      botPanel.setAttribute('aria-hidden', 'true');
+    }
+
+    function cancelBotSession() {
+      botRequestSeq += 1;
+      hideTyping();
+      botInput.value = '';
+      updateBotSendState();
+      botBody.innerHTML = '';
+      appendBot('bot', 'WOW Assistant session cancelled. Start a new query when you are ready.');
+    }
+
+        function wowAssistantUserPayload() {
+      const role = (localStorage.getItem('wow_user_role') || 'passenger').toLowerCase();
+      const userType = role === 'driver' ? 'driver' : 'passenger';
+      const userIdRaw = localStorage.getItem('wow_user_id') || '';
+      const userId = /^\d+$/.test(String(userIdRaw)) ? String(userIdRaw) : '';
+      return { user_type: userType, user_id: userId };
+    }
+
+    async function loadAssistantHistory() {
+      const payload = wowAssistantUserPayload();
+      const query = new URLSearchParams({
+        action: 'history',
+        user_type: payload.user_type,
+        limit: '24'
+      });
+      if (payload.user_id) query.set('user_id', payload.user_id);
+
+      try {
+        const res = await fetch(`${WOW_ASSISTANT_API}?${query.toString()}`, { credentials: 'same-origin' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data || !data.ok || !Array.isArray(data.rows)) return false;
+
+        botBody.innerHTML = '';
+        const rows = data.rows.slice().reverse();
+        rows.forEach((row) => {
+          if (row.message) appendBot('user', String(row.message));
+          if (row.response) appendBot('bot', String(row.response));
+        });
+        return rows.length > 0;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    async function saveAssistantExchange(message, response) {
+      const payload = wowAssistantUserPayload();
+      const body = {
+        action: 'save',
+        user_type: payload.user_type,
+        user_id: payload.user_id,
+        message,
+        response
+      };
+      try {
+        await fetch(WOW_ASSISTANT_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify(body)
+        });
+      } catch (e) {
+        // keep assistant UX uninterrupted on transient write failures
+      }
+    }
+
+    function appendBot(type, text) {
+      const bubble = document.createElement('div');
+      bubble.className = `bot-bubble ${type}`;
+      bubble.textContent = text;
+      botBody.appendChild(bubble);
+      botBody.scrollTop = botBody.scrollHeight;
+    }
+
+    function showTyping() {
+      if (document.getElementById('botTyping')) return;
+      const bubble = document.createElement('div');
+      bubble.id = 'botTyping';
+      bubble.className = 'bot-bubble bot bot-typing';
+      bubble.innerHTML = 'WOW Assistant is typing... <span class="typing-dots"><span></span><span></span><span></span></span>';
+      botBody.appendChild(bubble);
+      botBody.scrollTop = botBody.scrollHeight;
+    }
+
+    function hideTyping() {
+      const typing = document.getElementById('botTyping');
+      if (typing) typing.remove();
+    }
+
+    function readRideContext() {
+      const pickup = localStorage.getItem('wow_ride_pickup') || '';
+      const drop = localStorage.getItem('wow_ride_drop') || '';
+      const distanceKm = Number(localStorage.getItem('wow_ride_distance_km') || '0');
+      const durationMin = Number(localStorage.getItem('wow_ride_duration_min') || '0');
+      const pickupLat = Number(localStorage.getItem('wow_ride_pickup_lat') || '');
+      const pickupLng = Number(localStorage.getItem('wow_ride_pickup_lng') || '');
+      const dropLat = Number(localStorage.getItem('wow_ride_drop_lat') || '');
+      const dropLng = Number(localStorage.getItem('wow_ride_drop_lng') || '');
+      return {
+        pickup,
+        drop,
+        distanceKm: Number.isFinite(distanceKm) ? distanceKm : 0,
+        durationMin: Number.isFinite(durationMin) ? durationMin : 0,
+        pickupLat: Number.isFinite(pickupLat) ? pickupLat : null,
+        pickupLng: Number.isFinite(pickupLng) ? pickupLng : null,
+        dropLat: Number.isFinite(dropLat) ? dropLat : null,
+        dropLng: Number.isFinite(dropLng) ? dropLng : null
+      };
+    }
+
+    function haversineKm(aLat, aLng, bLat, bLng) {
+      const rad = (v) => (v * Math.PI) / 180;
+      const R = 6371;
+      const dLat = rad(bLat - aLat);
+      const dLng = rad(bLng - aLng);
+      const x = Math.sin(dLat / 2) ** 2 + Math.cos(rad(aLat)) * Math.cos(rad(bLat)) * Math.sin(dLng / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+    }
+
+    function pointFromText(text, fallback) {
+      const base = fallback || { lat: 24.8607, lng: 67.0011 };
+      const hash = String(text || '')
+        .split('')
+        .reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+      return {
+        lat: base.lat + (((hash % 17) - 8) * 0.0042),
+        lng: base.lng + ((((hash >> 2) % 17) - 8) * 0.0042)
+      };
+    }
+
+    function estimateDistanceKm(context) {
+      if (context.distanceKm > 0) return context.distanceKm;
+      if (context.pickupLat !== null && context.pickupLng !== null && context.dropLat !== null && context.dropLng !== null) {
+        return Math.max(0.5, haversineKm(context.pickupLat, context.pickupLng, context.dropLat, context.dropLng));
+      }
+      if (context.pickup && context.drop) {
+        const p1 = pointFromText(context.pickup, { lat: 24.8607, lng: 67.0011 });
+        const p2 = pointFromText(context.drop, { lat: 24.8607, lng: 67.0011 });
+        return Math.max(0.5, haversineKm(p1.lat, p1.lng, p2.lat, p2.lng));
+      }
+      return 0;
+    }
+
+    function estimateDurationMin(context, distanceKm) {
+      if (context.durationMin > 0) return context.durationMin;
+      if (distanceKm > 0) return Math.max(4, Math.round((distanceKm / 28) * 60));
+      return 0;
+    }
+
+    function money(v) {
+      return `Rs. ${Math.round(v).toLocaleString('en-PK')}`;
+    }
+
+    function extractRouteFromText(text) {
+      const raw = String(text || '').trim();
+      if (!raw) return null;
+
+      const routePatterns = [
+        /\bfrom\s+(.+?)\s+to\s+(.+?)(?:[\?\.,!]|$)/i,
+        /\bbetween\s+(.+?)\s+and\s+(.+?)(?:[\?\.,!]|$)/i
+      ];
+
+      for (const pattern of routePatterns) {
+        const match = raw.match(pattern);
+        if (match && match[1] && match[2]) {
+          return {
+            pickup: match[1].trim(),
+            drop: match[2].trim()
+          };
+        }
+      }
+
+      return null;
+    }
+
+    function estimateFromPlaces(pickup, drop) {
+      if (!pickup || !drop) return null;
+      const p1 = pointFromText(pickup, { lat: 24.8607, lng: 67.0011 });
+      const p2 = pointFromText(drop, { lat: 24.8607, lng: 67.0011 });
+      const distanceKm = Math.max(0.5, haversineKm(p1.lat, p1.lng, p2.lat, p2.lng));
+      const durationMin = Math.max(4, Math.round((distanceKm / 28) * 60));
+      const estimate = 110 + (distanceKm * 28) + (durationMin * 2.2);
+      return { distanceKm, durationMin, estimate };
+    }
+
+    function hasAny(text, words) {
+      return words.some(word => text.includes(word));
+    }
+
+    async function fetchBotPassengerRides(limit = 6) {
+      try {
+        const query = new URLSearchParams({
+          role: 'passenger',
+          email: localStorage.getItem('wow_user_email') || '',
+          user_id: localStorage.getItem('wow_user_id') || '',
+          limit: String(limit)
+        });
+        const res = await fetch(`php/get_passenger_rides.php?${query.toString()}`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data || !data.ok || !Array.isArray(data.rides)) return [];
+        return data.rides;
+      } catch (e) {
+        return [];
+      }
+    }
+
+    async function fetchBotFareEstimate(payload) {
+      try {
+        const res = await fetch('php/get_fare_estimate.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data || !data.ok) return null;
+        return data;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function botRideStatusLabel(status) {
+      const value = String(status || '').toLowerCase();
+      if (value === 'completed' || value === 'done') return 'Completed';
+      if (value === 'cancelled') return 'Cancelled';
+      if (value === 'ongoing') return 'Ongoing';
+      if (value === 'accepted') return 'Accepted';
+      return 'Booked';
+    }
+
+    async function getBotReply(text) {
+      const lower = text.toLowerCase();
+      const context = readRideContext();
+      const distanceKm = estimateDistanceKm(context);
+      const durationMin = estimateDurationMin(context, distanceKm);
+      const womenOnlyQuery = /\b(can\s+men\s+use(?:\s+this\s+app)?|can\s+males\s+use|men|males?|male|boys|for\s+men)\b/i.test(lower);
+      if (womenOnlyQuery) {
+        return 'No, this app is only for women to ensure safety and comfort.';
+      }
+
+      if (hasAny(lower, ['women only', 'only women', 'ladies only', 'female only'])) {
+        return 'Yes, this is a women-only ride platform focused on safety, comfort, and trusted women drivers/passengers.';
+      }
+
+      const routeFromMessage = extractRouteFromText(text);
+      const routeEstimate = routeFromMessage
+        ? estimateFromPlaces(routeFromMessage.pickup, routeFromMessage.drop)
+        : null;
+
+      const wantsFare = hasAny(lower, ['price', 'fare', 'cost', 'how much', 'estimate fare', 'estimated fare']);
+      const wantsDistance = hasAny(lower, ['distance', 'how far', 'km', 'kilometer', 'kilometre']);
+      const wantsHistory = hasAny(lower, ['history', 'recent ride', 'recent rides', 'my rides', 'past ride', 'past rides']);
+      const wantsBookingDetails = hasAny(lower, ['booking detail', 'booking details', 'ride details', 'my booking']);
+      const wantsStatus = hasAny(lower, ['ride status', 'status', 'track', 'tracking', 'where is my ride', 'eta']);
+
+      let dbRides = [];
+      if (wantsHistory || wantsBookingDetails || wantsStatus || (!routeFromMessage && (wantsFare || wantsDistance))) {
+        dbRides = await fetchBotPassengerRides(8);
+      }
+
+      if (wantsFare) {
+        const routePickup = routeFromMessage ? routeFromMessage.pickup : (context.pickup || (dbRides[0] && dbRides[0].pickup) || '');
+        const routeDrop = routeFromMessage ? routeFromMessage.drop : (context.drop || (dbRides[0] && dbRides[0].dropoff) || '');
+        if (routePickup && routeDrop) {
+          const fareData = await fetchBotFareEstimate({
+            pickup: routePickup,
+            drop: routeDrop,
+            vehicle_type: ((dbRides[0] && dbRides[0].vehicle_type) || 'car')
+          });
+          if (fareData) {
+            const dbDistance = Number(fareData.distance_km || 0);
+            const baseFare = Number((fareData.formula && fareData.formula.base_fare) || 90);
+            const perKmRate = Number((fareData.formula && fareData.formula.per_km_rate) || 24);
+            const simpleFare = Math.max(50, Math.round(baseFare + (dbDistance * perKmRate)));
+            return `Estimated fare from ${routePickup} to ${routeDrop} is around ${money(simpleFare)}.\nApprox distance: ${dbDistance.toFixed(1)} km${fareData.duration_min ? ` | Time: ~${Math.round(fareData.duration_min)} min` : ''}.\nFare is estimated using distance and may vary slightly.`;
+          }
+        }
+
+        if (dbRides.length) {
+          const latest = dbRides[0];
+          const dbFare = Number(latest.fare || latest.offered_fare || 0);
+          const dbDist = Number(latest.distance_km || 0);
+          if (dbFare > 0 || dbDist > 0) {
+            return `Your latest booked trip${latest.pickup && latest.dropoff ? ` (${latest.pickup} to ${latest.dropoff})` : ''} has an estimated fare of ${money(dbFare || (90 + (dbDist * 24)))}${dbDist > 0 ? ` for ${dbDist.toFixed(1)} km` : ''}.`;
+          }
+        }
+
+        if (routeEstimate) {
+          return `Estimated fare from ${routeFromMessage.pickup} to ${routeFromMessage.drop} is around ${money(routeEstimate.estimate)}.\nApprox distance: ${routeEstimate.distanceKm.toFixed(1)} km | Time: ~${routeEstimate.durationMin} min.\nFinal fare may vary based on traffic, route, and driver acceptance.`;
+        }
+        if (distanceKm > 0) {
+          const estimate = 110 + (distanceKm * 28) + (durationMin * 2.2);
+          return `Based on your current trip context, estimated fare is around ${money(estimate)}.\nApprox distance: ${distanceKm.toFixed(1)} km${durationMin > 0 ? ` | Time: ~${durationMin} min` : ''}.\nFinal fare may vary with traffic, route, and driver acceptance.`;
+        }
+        return 'I can estimate fare for you.\nPlease share pickup and destination (for example: "fare from Saddar to Clifton").';
+      }
+
+      if (wantsDistance) {
+        const routePickup = routeFromMessage ? routeFromMessage.pickup : (context.pickup || (dbRides[0] && dbRides[0].pickup) || '');
+        const routeDrop = routeFromMessage ? routeFromMessage.drop : (context.drop || (dbRides[0] && dbRides[0].dropoff) || '');
+        if (routePickup && routeDrop) {
+          const fareData = await fetchBotFareEstimate({ pickup: routePickup, drop: routeDrop });
+          if (fareData) {
+            const dbDistance = Number(fareData.distance_km || 0);
+            const dbDuration = Number(fareData.duration_min || 0);
+            return `Estimated distance from ${routePickup} to ${routeDrop} is about ${dbDistance.toFixed(1)} km${dbDuration > 0 ? ` and around ${Math.round(dbDuration)} minutes` : ''}.`;
+          }
+        }
+
+        if (dbRides.length) {
+          const latest = dbRides[0];
+          const dbDist = Number(latest.distance_km || 0);
+          const dbDur = Number(latest.duration_min || 0);
+          if (dbDist > 0) {
+            return `Your latest ride distance is about ${dbDist.toFixed(1)} km${dbDur > 0 ? ` and around ${Math.round(dbDur)} minutes` : ''}.`;
+          }
+        }
+
+        if (routeEstimate) {
+          return `Estimated distance from ${routeFromMessage.pickup} to ${routeFromMessage.drop} is about ${routeEstimate.distanceKm.toFixed(1)} km.\nExpected travel time is around ${routeEstimate.durationMin} minutes (may vary with traffic).`;
+        }
+        if (distanceKm > 0) {
+          return `Estimated trip distance is about ${distanceKm.toFixed(1)} km${durationMin > 0 ? ` and around ${durationMin} minutes` : ''}.`;
+        }
+        return 'Please share pickup and destination so I can estimate distance and time.';
+      }
+
+      if (wantsBookingDetails) {
+        if (dbRides.length) {
+          const latest = dbRides[0];
+          return `Latest booking: ${latest.pickup || 'Pickup'} to ${latest.dropoff || 'Drop'}.\nStatus: ${botRideStatusLabel(latest.status)}${latest.fare ? ` | Fare: ${money(Number(latest.fare))}` : ''}.`;
+        }
+        return 'I could not find booking details right now. Please open Ride History for the latest trip information.';
+      }
+
+      if (wantsHistory) {
+        if (dbRides.length) {
+          const preview = dbRides.slice(0, 3).map((ride) => `${ride.pickup || 'Pickup'} -> ${ride.dropoff || 'Drop'} (${botRideStatusLabel(ride.status)})`);
+          return `Recent rides:\n${preview.join('\n')}`;
+        }
+        return 'No ride history found yet. Book your first ride to see trip history.';
+      }
+
+      if (hasAny(lower, ['ride option', 'vehicle', 'bike', 'car', 'scooty', 'options'])) {
+        return 'Available ride options are Car Ride, Bike Ride, and Scooty Ride.\nChoose based on comfort, budget, and urgency.';
+      }
+
+      if (hasAny(lower, ['book ride', 'book', 'booking', 'how to book'])) {
+        return 'Booking steps:\n1) Enter pickup and drop-off.\n2) Choose vehicle type.\n3) Review fare estimate and set your offer.\n4) Tap Book Ride.\n5) Wait for a nearby driver to accept.';
+      }
+
+      if (hasAny(lower, ['payment', 'pay', 'cash', 'jazzcash', 'card', 'wallet'])) {
+        return 'Payment methods currently include Cash and saved digital options like JazzCash (if added in your profile).\nYou can manage payment methods from Profile > Payment Methods.';
+      }
+
+      if (wantsStatus) {
+        if (dbRides.length) {
+          const latest = dbRides[0];
+          return `Your latest ride status is ${botRideStatusLabel(latest.status)}${latest.pickup && latest.dropoff ? ` for ${latest.pickup} to ${latest.dropoff}` : ''}.`;
+        }
+        return 'Ride status flow:\nPending -> Accepted -> Ongoing -> Completed.\nYou can track updates in real time once a driver accepts your request.';
+      }
+
+      if (hasAny(lower, ['driver', 'nearby', 'match', 'assigned'])) {
+        return 'The system matches your request with nearby online and available women drivers.\nYour ride starts only after a driver accepts.';
+      }
+
+      if (hasAny(lower, ['cancel', 'cancellation'])) {
+        return 'You can cancel before driver acceptance.\nAfter acceptance, cancellation depends on current ride stage and platform rules.';
+      }
+
+      if (hasAny(lower, ['help', 'support', 'issue', 'problem'])) {
+        return 'I can help with ride booking, fares, distance, vehicle options, payment methods, and ride status.\nTell me your pickup and drop for a quick estimate.';
+      }
+
+      return 'I can help with ride-sharing only: fare, distance, booking details, ride history, payment methods, and ride status. Please ask a ride-related question.';
+    }
+
+    function sendBotMessage(textOverride) {
+      const text = (textOverride || botInput.value).trim();
+      if (!text) return;
+      const requestSeq = ++botRequestSeq;
+      appendBot('user', text);
+      botInput.value = '';
+      updateBotSendState();
+      showTyping();
+      setTimeout(() => {
+        if (requestSeq !== botRequestSeq) return;
+        Promise.resolve(getBotReply(text))
+          .then(async (reply) => {
+            if (requestSeq !== botRequestSeq) return;
+            hideTyping();
+            appendBot('bot', reply);
+            await saveAssistantExchange(text, String(reply || ''));
+          })
+          .catch(async () => {
+            if (requestSeq !== botRequestSeq) return;
+            hideTyping();
+            const fallback = 'I can help with ride-sharing only: fare, distance, booking details, ride history, payment methods, and ride status.';
+            appendBot('bot', fallback);
+            await saveAssistantExchange(text, fallback);
+          });
+      }, 700);
+    }
+
+    function updateBotSendState() {
+      const sendBtn = document.getElementById('sendBot');
+      const hasText = botInput.value.trim().length > 0;
+      sendBtn.disabled = !hasText;
+    }
+
+    // Chatbot controls are bound once by js/passenger-chatbot.js. The legacy
+    // inline responder remains inert to prevent duplicate requests/replies.
+    const bottomHelpBtn = document.getElementById('bottomHelp');
+    if (bottomHelpBtn) bottomHelpBtn.addEventListener('click', () => location.href = 'help.html');
+    updateBotSendState();
+
+    const homeSosBtn = document.getElementById('homeSos');
+    if (homeSosBtn) {
+      homeSosBtn.disabled = true;
+      homeSosBtn.style.display = 'none';
+    }
+
+    const PROFILE_API = 'php/profile_api.php';
+    const LOGOUT_API = 'php/logout.php';
+    const profileState = {
+      user: null,
+      settings: null,
+      paymentMethods: [],
+      savedPlaces: [],
+      notifications: [],
+      supportRequests: [],
+      profileImageData: ''
+    };
+
+    const profileOverlay = document.getElementById('profileOverlay');
+    const profilePanel = document.getElementById('profilePanel');
+    const passengerHeader = document.querySelector('.app-home-shell .home-header');
+    const syncPassengerHeaderHeight = () => {
+      if (!passengerHeader) return;
+      document.documentElement.style.setProperty('--passenger-header-height', `${Math.ceil(passengerHeader.getBoundingClientRect().height)}px`);
+    };
+    const passengerHeaderObserver = passengerHeader && 'ResizeObserver' in window ? new ResizeObserver(syncPassengerHeaderHeight) : null;
+    passengerHeaderObserver?.observe(passengerHeader);
+    syncPassengerHeaderHeight();
+    window.addEventListener('pagehide', () => passengerHeaderObserver?.disconnect(), { once: true });
+    const profileInitial = document.getElementById('profileInitial');
+    const profileName = document.getElementById('profileName');
+    const profileEmail = document.getElementById('profileEmail');
+    const profilePhoneRole = document.getElementById('profilePhoneRole');
+    const profileRating = document.getElementById('profileRating');
+    let profileReturnFocus = null;
+    const editNameInput = document.getElementById('editName');
+    const editPhoneInput = document.getElementById('editPhone');
+    const editEmailInput = document.getElementById('editEmail');
+    const editProfileImageInput = document.getElementById('editProfileImage');
+    const editPhotoPreview = document.getElementById('editPhotoPreview');
+    const profileFileName = document.getElementById('profileFileName');
+    const rideUpdatesToggle = document.querySelector('#notificationSettingsPanel .setting-row:nth-child(1) input[type="checkbox"]');
+    const promotionsToggle = document.querySelector('#notificationSettingsPanel .setting-row:nth-child(2) input[type="checkbox"]');
+    const safetyAlertsToggle = document.getElementById('safetyAlertsToggle');
+    const safetyInfoText = document.querySelector('#safetyPanel .subpanel-content p');
+    const notificationsList = document.querySelector('.notifications-list');
+    let notificationsRealtimeStarted = false;
+    let notificationUnsubscribers = [];
+    const realtimeNotificationDocs = new Map();
+
+    async function profileApi(action, payload = {}) {
+      const body = {
+        action,
+        role: 'passenger',
+        email: localStorage.getItem('wow_user_email') || '',
+        user_id: localStorage.getItem('wow_user_id') || '',
+        ...payload
+      };
+
+      const res = await fetch(PROFILE_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(body)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data || data.ok !== true) {
+        throw new Error((data && data.error) || 'profile_request_failed');
+      }
+      return data;
+    }
+
+    function esc(text) {
+      return String(text || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function setDrawerStatus(id, message, type = '') {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = message || '';
+      el.classList.toggle('success', type === 'success');
+      el.classList.toggle('error', type === 'error');
+    }
+
+    function setBusy(button, busy, label) {
+      if (!button) return;
+      if (!button.dataset.defaultText) button.dataset.defaultText = button.textContent;
+      button.disabled = !!busy;
+      button.textContent = busy ? (label || 'Saving...') : button.dataset.defaultText;
+    }
+
+    function applyAvatarImage(imageData) {
+      const targets = [profileInitial, editPhotoPreview];
+      targets.forEach((target) => {
+        if (!target) return;
+        if (imageData) {
+          target.classList.add('has-image');
+          target.style.backgroundImage = `url("${imageData}")`;
+        } else {
+          target.classList.remove('has-image');
+          target.style.backgroundImage = '';
+        }
+      });
+    }
+
+    function maskAccount(value) {
+      const digits = String(value || '').replace(/\D+/g, '');
+      if (!digits) return '--';
+      if (digits.length <= 4) return digits;
+      return `${'*'.repeat(Math.max(0, digits.length - 4))}${digits.slice(-4)}`;
+    }
+
+    function openProfile() {
+      closeNotifications();
+      profileReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      profileOverlay.classList.add('is-open');
+      profilePanel.classList.add('is-open');
+      profilePanel.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('profile-drawer-open');
+      [document.getElementById('openProfile'), document.getElementById('bottomProfile')].forEach((button) => button?.setAttribute('aria-expanded', 'true'));
+      const displayName = localStorage.getItem('wow_user_name') || name || 'Guest';
+      profileName.textContent = displayName;
+      profileEmail.textContent = localStorage.getItem('wow_user_email') || storedEmail || 'guest@wow.com';
+      profileInitial.textContent = displayName.trim().charAt(0).toUpperCase() || 'G';
+      fetchProfileDetails();
+      requestAnimationFrame(() => document.getElementById('closeProfile')?.focus());
+    }
+
+    function closeProfile() {
+      profileOverlay.classList.remove('is-open');
+      profilePanel.classList.remove('is-open');
+      profilePanel.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('profile-drawer-open');
+      [document.getElementById('openProfile'), document.getElementById('bottomProfile')].forEach((button) => button?.setAttribute('aria-expanded', 'false'));
+      const returnTarget = profileReturnFocus;
+      profileReturnFocus = null;
+      if (returnTarget && document.contains(returnTarget)) requestAnimationFrame(() => returnTarget.focus());
+    }
+
+    async function fetchProfileDetails() {
+      try {
+        const data = await profileApi('get');
+        profileState.user = data.user || {};
+        profileState.settings = data.settings || {};
+        profileState.paymentMethods = Array.isArray(data.payment_methods) ? data.payment_methods : [];
+        profileState.savedPlaces = Array.isArray(data.saved_places) ? data.saved_places : [];
+        if (!notificationsRealtimeStarted) profileState.notifications = [];
+        profileState.supportRequests = Array.isArray(data.support_requests) ? data.support_requests : [];
+        profileState.profileImageData = profileState.user.profile_image || '';
+
+        const displayName = profileState.user.name || localStorage.getItem('wow_user_name') || 'Guest';
+        const displayEmail = profileState.user.email || localStorage.getItem('wow_user_email') || 'guest@wow.com';
+        const displayPhone = profileState.user.phone || localStorage.getItem('wow_user_phone') || '';
+        const displayRole = profileState.user.role || 'Passenger';
+        const ratingValue = Number(profileState.user.rating || profileState.user.passengerRating || profileState.user.averageRating || 0);
+
+        profileName.textContent = displayName;
+        profileEmail.textContent = displayEmail;
+        if (profilePhoneRole) profilePhoneRole.textContent = `${displayPhone || 'No phone added'} · ${displayRole}`;
+        if (profileRating) {
+          profileRating.hidden = !(Number.isFinite(ratingValue) && ratingValue > 0);
+          profileRating.textContent = profileRating.hidden ? '' : `★ ${ratingValue.toFixed(1)} Rating`;
+        }
+        profileInitial.textContent = displayName.trim().charAt(0).toUpperCase() || 'G';
+        editNameInput.value = displayName;
+        editPhoneInput.value = displayPhone;
+        editEmailInput.value = displayEmail;
+        document.getElementById('homeName').textContent = displayName;
+        applyAvatarImage(profileState.profileImageData);
+
+        localStorage.setItem('wow_user_name', displayName);
+        localStorage.setItem('wow_user_email', displayEmail);
+        if (profileState.user.phone) localStorage.setItem('wow_user_phone', profileState.user.phone);
+        if (profileState.user.id) localStorage.setItem('wow_user_id', String(profileState.user.id));
+
+        if (rideUpdatesToggle) rideUpdatesToggle.checked = !!profileState.settings.notifications_ride_updates;
+        if (promotionsToggle) promotionsToggle.checked = !!profileState.settings.notifications_promotions;
+        if (safetyAlertsToggle) safetyAlertsToggle.checked = !!profileState.settings.safety_alerts_enabled;
+
+        renderPaymentMethods();
+        renderSavedPlaces();
+        renderNotifications();
+        renderAppSettings();
+        renderSupportRequests();
+        renderSafetyText();
+      } catch (error) {
+        setDrawerStatus('profileSaveStatus', 'Could not load latest Firebase profile data.', 'error');
+      }
+    }
+
+    function renderSafetyText() {
+      if (!safetyInfoText) return;
+      const contactName = (profileState.settings && profileState.settings.emergency_contact_name) || '';
+      const contactPhone = (profileState.settings && profileState.settings.emergency_contact_phone) || '';
+      if (contactName || contactPhone) {
+        safetyInfoText.textContent = `Emergency contact: ${contactName || 'Not set'} (${contactPhone || 'Not set'}). Click to update.`;
+      } else {
+        safetyInfoText.textContent = 'Emergency contacts and safety settings will appear here. Click to configure.';
+      }
+      safetyInfoText.style.cursor = 'pointer';
+    }
+
+    function renderPaymentMethods() {
+      const container = document.getElementById('paymentMethodsList');
+      if (!container) return;
+      const preferred = (profileState.settings && profileState.settings.preferred_payment_method) || 'cash';
+      const items = [];
+
+      items.push(`
+        <div class="payment-card ${preferred === 'cash' ? 'active' : ''}" data-method="cash" role="button" tabindex="0">
+          <span class="radio-dot"></span>
+          <div>
+            <strong>Cash</strong>
+            <span>Pay with cash to driver</span>
+          </div>
+          <span class="tag">${preferred === 'cash' ? 'Default' : 'Select'}</span>
+        </div>
+      `);
+
+      profileState.paymentMethods.forEach((item) => {
+        const method = String(item.method_type || '').toLowerCase();
+        const methodLabel = method === 'easypaisa' ? 'EasyPaisa' : 'JazzCash';
+        const masked = maskAccount(item.account_number || '');
+        items.push(`
+          <div class="payment-card ${item.is_default ? 'active' : ''}" data-method="${method}" role="button" tabindex="0">
+            <span class="radio-dot"></span>
+            <div>
+              <strong>${methodLabel}</strong>
+              <span>${masked}</span>
+            </div>
+            <button class="trash-btn" aria-label="Remove" data-remove="${method}">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+                <path d="M6 7h12l-1 14H7L6 7Zm3-3h6l1 2H8l1-2Z"></path>
+              </svg>
+            </button>
+          </div>
+        `);
+      });
+
+      container.innerHTML = items.join('');
+      bindPaymentHandlers();
+    }
+
+    function bindPaymentHandlers() {
+      const container = document.getElementById('paymentMethodsList');
+      if (!container) return;
+
+      container.querySelectorAll('.payment-card[data-method]').forEach((card) => {
+        card.addEventListener('click', async (event) => {
+          const removeBtn = event.target.closest('.trash-btn');
+          if (removeBtn) return;
+          const method = card.getAttribute('data-method');
+          if (!method) return;
+          try {
+            await profileApi('set_default_payment', { method_type: method });
+            setDrawerStatus('paymentStatus', 'Default payment method updated.', 'success');
+            await fetchProfileDetails();
+          } catch (error) {
+            setDrawerStatus('paymentStatus', 'Could not update default payment.', 'error');
+          }
+        });
+      });
+
+      container.querySelectorAll('.trash-btn[data-remove]').forEach((btn) => {
+        btn.addEventListener('click', async (event) => {
+          event.stopPropagation();
+          const method = btn.getAttribute('data-remove');
+          if (!method) return;
+          try {
+            await profileApi('delete_payment', { method_type: method });
+            setDrawerStatus('paymentStatus', 'Payment method removed.', 'success');
+            await fetchProfileDetails();
+          } catch (error) {
+            setDrawerStatus('paymentStatus', 'Could not remove payment method.', 'error');
+          }
+        });
+      });
+    }
+
+    function renderSavedPlaces() {
+      const list = document.getElementById('savedPlacesList');
+      if (!list) return;
+      if (!profileState.savedPlaces.length) {
+        list.innerHTML = '<div class="empty-state"><p>No saved places yet.</p></div>';
+        return;
+      }
+      list.innerHTML = profileState.savedPlaces.map((place) => `
+        <div class="history-item">
+          <div class="history-item-header">
+            <strong>${esc(place.name || place.place_type || 'Saved place')}</strong>
+            <span class="review-pill">${esc(place.place_type || 'favorite')}</span>
+          </div>
+          <div class="history-item-meta">${esc(place.address || '--')}</div>
+          <div class="history-item-actions">
+            <span class="history-item-meta">${place.latitude && place.longitude ? `${esc(place.latitude)}, ${esc(place.longitude)}` : 'Coordinates optional'}</span>
+            <button class="review-btn" type="button" data-delete-place="${esc(place.id)}">Remove</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderNotifications() {
+      if (!notificationsList) return;
+      if (!profileState.notifications.length) {
+        notificationsList.innerHTML = '<div class="empty-state"><p>No notifications yet.</p></div>';
+        return;
+      }
+      notificationsList.innerHTML = profileState.notifications.map((item) => `
+        <button class="notice-item notice-item-action ${item.is_read ? '' : 'highlight'}" type="button" data-passenger-notification="${esc(item.id)}">
+          <div class="notice-icon ${item.type === 'promotion' ? 'purple' : (item.type === 'safety' ? 'muted' : '')}">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+              <path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2Zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2Z"></path>
+            </svg>
+          </div>
+          <div>
+            <strong>${esc(item.title || 'Notification')}</strong>
+            <p>${esc(item.message || '')}</p>
+            <span>${esc(formatRideDate(item.created_at || new Date().toISOString()))}</span>
+          </div>
+          ${item.is_read ? '' : '<span class="notice-dot"></span>'}
+        </button>
+      `).join('');
+    }
+
+    function notificationMillis(value) {
+      if (value && typeof value.toMillis === 'function') return value.toMillis();
+      if (value && Number.isFinite(Number(value.seconds))) return Number(value.seconds) * 1000;
+      const parsed = Date.parse(String(value || ''));
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function notificationDedupeKey(item) {
+      const type = String(item.type || 'system').trim().toLowerCase().replace(/[\s-]+/g, '_');
+      const entity = item.ride_id || item.case_id || item.payment_id || item.support_id || '';
+      const event = String(item.event_id || item.event_status || '').trim().toLowerCase();
+      return entity ? `${entity}|${type}|${event}` : `document|${item.id}`;
+    }
+
+    function notificationAction(item) {
+      const type = String(item.type || '').toLowerCase();
+      const rideId = encodeURIComponent(item.ride_id || '');
+      const caseId = encodeURIComponent(item.case_id || '');
+      if ((/return/.test(type) || /lost|found/.test(type)) && caseId) {
+        return { href: `lost-found.html?caseId=${caseId}${rideId ? `&rideId=${rideId}` : ''}`, label: /return/.test(type) ? 'View Return Details' : 'View Case' };
+      }
+      if (/support/.test(type)) return { href: 'help.html', label: 'Open Support' };
+      if (/payment/.test(type) && rideId) return { href: `passenger-ride.html?rideId=${rideId}&panel=payment`, label: 'Pay Now' };
+      if (/arriv|on_the_way|en_route|tracking/.test(type) && rideId) return { href: `passenger-ride.html?rideId=${rideId}&panel=tracking`, label: 'Track Driver' };
+      if (rideId) return { href: `passenger-ride.html?rideId=${rideId}&panel=overview`, label: 'View Ride' };
+      return { href: '', label: 'Open' };
+    }
+
+    function isActionableImportantNotification(item) {
+      if (item.is_read || !item.created_ms || item.created_ms < Date.now() - (14 * 24 * 60 * 60 * 1000)) return false;
+      const type = String(item.type || '').toLowerCase().replace(/[\s-]+/g, '_');
+      const content = `${type} ${item.event_status || ''} ${item.title || ''} ${item.message || ''}`.toLowerCase();
+      if (/ride_scheduled|ride_request_created|request_created|booking_confirm|scheduled_success/.test(content) &&
+          !/changed|updated|cancel/.test(content)) return false;
+      return /driver_assigned|ride_assigned|driver_arriv|driver_on_the_way|driver_en_route|payment_required|payment_pending|sos|safety|lost_found.*found|item_found|return.*confirm|meeting.*confirm|scheduled.*(?:changed|updated|cancel)|support.*(?:reply|response|action)/.test(content) ||
+        String(item.priority || '').toLowerCase() === 'high';
+    }
+
+    function syncRealtimeNotifications() {
+      const newestFirst = Array.from(realtimeNotificationDocs.values()).sort((a, b) => b.created_ms - a.created_ms);
+      const reconciled = new Map();
+      newestFirst.forEach((item) => {
+        const key = notificationDedupeKey(item);
+        if (!reconciled.has(key)) reconciled.set(key, item);
+      });
+      profileState.notifications = Array.from(reconciled.values()).slice(0, 50);
+      renderNotifications();
+      const unread = profileState.notifications.filter((item) => !item.is_read).length;
+      const button = document.getElementById('openNotifications');
+      const summary = document.getElementById('importantNotificationSummary');
+      if (summary) {
+        const important = profileState.notifications.filter(isActionableImportantNotification).slice(0, 3);
+        summary.innerHTML = important.length
+          ? `<div class="important-notification-list">${important.map((item) => {
+              const target = notificationAction(item);
+              const action = `<a class="home-section-action" data-passenger-notification="${esc(item.id)}" href="${esc(target.href || '#')}">${esc(target.label)}</a>`;
+              return `<article class="important-notification"><span class="important-notification-icon" aria-hidden="true">!</span><div><strong>${esc(item.title || 'Ride update')}</strong><p>${esc(item.message || 'Open for details')}</p><time>${esc(formatRideDate(item.created_at || new Date().toISOString()))}</time></div>${action}</article>`;
+            }).join('')}</div>`
+          : '<div class="important-empty"><strong>No important updates</strong><p>You&rsquo;re all caught up.</p></div>';
+      }
+      if (button) {
+        button.dataset.unread = String(unread);
+        button.setAttribute('aria-label', unread ? `Notifications, ${unread} unread` : 'Notifications');
+        button.classList.toggle('has-unread', unread > 0);
+      }
+      localStorage.setItem('wow_passenger_unread_notifications', String(unread));
+      window.dispatchEvent(new CustomEvent('wow:passenger-unread', { detail: { count: unread } }));
+    }
+
+    async function startPassengerNotificationRealtime() {
+      if (notificationsRealtimeStarted || !window.WowFirestore) return;
+      try {
+        const { db, uid } = await window.WowFirestore.ready();
+        if (!uid) throw new Error('passenger_auth_required');
+        notificationsRealtimeStarted = true;
+        const applySnapshot = (snapshot) => {
+          snapshot.docChanges().forEach((change) => {
+            const key = change.doc.id;
+            if (change.type === 'removed') {
+              realtimeNotificationDocs.delete(key);
+              return;
+            }
+            const data = change.doc.data() || {};
+            const receiverRole = String(data.receiverRole || '').toLowerCase();
+            const receiverUid = String(data.receiverUid || '');
+            if (receiverRole === 'driver' || receiverRole === 'admin' || (receiverUid && receiverUid !== uid)) {
+              realtimeNotificationDocs.delete(key);
+              return;
+            }
+            const created = data.createdAt || data.created_at || data.sentAt || data.updatedAt;
+            realtimeNotificationDocs.set(key, {
+              id: key,
+              ref: change.doc.ref,
+              type: String(data.type || data.notificationType || 'system').toLowerCase(),
+              title: data.title || 'Women on Wheels',
+              message: data.message || data.body || '',
+              is_read: data.read === true || data.isRead === true,
+              created_at: created && typeof created.toDate === 'function' ? created.toDate().toISOString() : (created || new Date().toISOString()),
+              created_ms: notificationMillis(created),
+              ride_id: String(data.rideId || data.ride_id || ''),
+              case_id: String(data.lostFoundCaseId || data.caseId || data.case_id || ''),
+              payment_id: String(data.paymentId || data.payment_id || ''),
+              support_id: String(data.supportId || data.supportRequestId || ''),
+              event_id: String(data.eventId || data.eventIdentifier || ''),
+              event_status: String(data.eventStatus || data.status || ''),
+              priority: String(data.priority || '')
+            });
+          });
+          syncRealtimeNotifications();
+        };
+        const failed = (error) => {
+          console.warn('[WOW Passenger Notifications] realtime listener failed', error?.code || error?.message);
+          if (!realtimeNotificationDocs.size) {
+            notificationsList.innerHTML = '<div class="empty-state"><p>Unable to load notifications right now.</p></div>';
+          }
+        };
+        let snapshot;
+        try {
+          snapshot = await db.collection('notifications').where('passengerUid', '==', uid)
+            .orderBy('createdAt', 'desc').limit(50).get();
+        } catch (readError) {
+          console.warn('[WOW Passenger Notifications] ordered read unavailable', readError?.code || readError?.message);
+          snapshot = await db.collection('notifications').where('passengerUid', '==', uid).limit(50).get();
+        }
+        applySnapshot(snapshot);
+        notificationUnsubscribers = [];
+      } catch (error) {
+        notificationsRealtimeStarted = false;
+        notificationsList.innerHTML = '<div class="empty-state"><p>Please sign in to view notifications.</p></div>';
+      }
+    }
+
+    async function markPassengerNotificationsRead() {
+      const unread = profileState.notifications.filter((item) => !item.is_read && item.ref);
+      if (!unread.length) return;
+      unread.forEach((item) => { item.is_read = true; });
+      syncRealtimeNotifications();
+      try {
+        const { db } = await window.WowFirestore.ready();
+        const batch = db.batch();
+        unread.forEach((item) => batch.set(item.ref, {
+          read: true,
+          isRead: true,
+          readAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true }));
+        await batch.commit();
+      } catch (error) {
+        unread.forEach((item) => { item.is_read = false; });
+        syncRealtimeNotifications();
+        console.warn('[WOW Passenger Notifications] mark read failed', error?.code || error?.message);
+      }
+    }
+
+    async function openPassengerNotification(item, href = '') {
+      if (!item) return;
+      const target = href || notificationAction(item).href;
+      if (!item.is_read && item.ref) {
+        item.is_read = true;
+        syncRealtimeNotifications();
+        try {
+          await item.ref.set({
+            read: true,
+            isRead: true,
+            readAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        } catch (error) {
+          item.is_read = false;
+          syncRealtimeNotifications();
+          console.warn('[WOW Passenger Notifications] mark one read failed', error?.code || error?.message);
+          return;
+        }
+      }
+      if (target && target !== '#') location.href = target;
+      else openNotifications();
+    }
+
+    function renderAppSettings() {
+      const settings = profileState.settings || {};
+      const language = document.getElementById('settingsLanguage');
+      const visibility = document.getElementById('settingsProfileVisibility');
+      const shareTrip = document.getElementById('settingsShareTrip');
+      const marketing = document.getElementById('settingsMarketing');
+      if (language) language.value = settings.language || 'en';
+      if (visibility) visibility.value = settings.profile_visibility || 'drivers_only';
+      if (shareTrip) shareTrip.checked = settings.share_trip_status !== false;
+      if (marketing) marketing.checked = settings.marketing_opt_in !== false;
+    }
+
+    function renderSupportRequests() {
+      const list = document.getElementById('supportRequestsList');
+      if (!list) return;
+      if (!profileState.supportRequests.length) {
+        list.innerHTML = '<div class="empty-state"><p>No support requests yet.</p></div>';
+        return;
+      }
+      list.innerHTML = profileState.supportRequests.map((item) => `
+        <div class="history-item">
+          <div class="history-item-header">
+            <strong>${esc(item.category || 'Support')}</strong>
+            <span class="review-pill">${esc(item.status || 'open')}</span>
+          </div>
+          <div class="history-item-meta">${esc(item.message || '')}</div>
+          <div class="history-item-meta">${esc(formatRideDate(item.created_at || ''))}</div>
+        </div>
+      `).join('');
+    }
+
+    async function persistNotificationSettings() {
+      if (!rideUpdatesToggle || !promotionsToggle) return;
+      try {
+        await profileApi('save_settings', {
+          notifications_ride_updates: rideUpdatesToggle.checked ? 1 : 0,
+          notifications_promotions: promotionsToggle.checked ? 1 : 0,
+          safety_alerts_enabled: safetyAlertsToggle && safetyAlertsToggle.checked ? 1 : 0,
+          language: (profileState.settings && profileState.settings.language) || 'en',
+          share_trip_status: profileState.settings && profileState.settings.share_trip_status ? 1 : 0,
+          profile_visibility: (profileState.settings && profileState.settings.profile_visibility) || 'drivers_only',
+          marketing_opt_in: profileState.settings && profileState.settings.marketing_opt_in ? 1 : 0
+        });
+        setDrawerStatus('notificationStatus', 'Notification preferences saved.', 'success');
+        await fetchProfileDetails();
+      } catch (error) {
+        setDrawerStatus('notificationStatus', 'Could not save notification settings.', 'error');
+      }
+    }
+
+    async function configureSafetyContact() {
+      const currentName = (profileState.settings && profileState.settings.emergency_contact_name) || '';
+      const currentPhone = (profileState.settings && profileState.settings.emergency_contact_phone) || '';
+      const nameInput = window.prompt('Emergency contact name', currentName);
+      if (nameInput === null) return;
+      const phoneInput = window.prompt('Emergency contact phone', currentPhone);
+      if (phoneInput === null) return;
+      const trimmedPhone = String(phoneInput).trim();
+      if (trimmedPhone && !/^\+?[0-9\-\s]{10,16}$/.test(trimmedPhone)) {
+        window.alert('Please enter a valid emergency contact phone.');
+        return;
+      }
+      try {
+        await profileApi('update_safety', {
+          emergency_contact_name: String(nameInput).trim(),
+          emergency_contact_phone: trimmedPhone
+        });
+        await fetchProfileDetails();
+      } catch (error) {}
+    }
+
+    const openProfileBtn = document.getElementById('openProfile');
+    const bottomProfileBtn = document.getElementById('bottomProfile');
+    if (openProfileBtn) openProfileBtn.addEventListener('click', openProfile);
+    if (bottomProfileBtn) bottomProfileBtn.addEventListener('click', openProfile);
+    document.getElementById('closeProfile').addEventListener('click', closeProfile);
+    profileOverlay.addEventListener('click', closeProfile);
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && profilePanel.classList.contains('is-open')) closeProfile();
+    });
+
+    if (rideUpdatesToggle) rideUpdatesToggle.addEventListener('change', persistNotificationSettings);
+    if (promotionsToggle) promotionsToggle.addEventListener('change', persistNotificationSettings);
+    if (safetyAlertsToggle) safetyAlertsToggle.addEventListener('change', persistNotificationSettings);
+    if (safetyInfoText) safetyInfoText.addEventListener('click', configureSafetyContact);
+
+    if (editProfileImageInput) {
+      editProfileImageInput.addEventListener('change', () => {
+        const file = editProfileImageInput.files && editProfileImageInput.files[0];
+        if (!file) {
+          if (profileFileName) profileFileName.textContent = 'JPG, PNG or WebP · maximum 700 KB';
+          return;
+        }
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+          setDrawerStatus('profileSaveStatus', 'Please choose a JPG, PNG or WebP image.', 'error');
+          editProfileImageInput.value = '';
+          if (profileFileName) profileFileName.textContent = 'JPG, PNG or WebP · maximum 700 KB';
+          return;
+        }
+        if (file.size > 700000) {
+          setDrawerStatus('profileSaveStatus', 'Please choose an image under 700 KB.', 'error');
+          editProfileImageInput.value = '';
+          if (profileFileName) profileFileName.textContent = 'JPG, PNG or WebP · maximum 700 KB';
+          return;
+        }
+        if (profileFileName) profileFileName.textContent = `${file.name} · ${(file.size / 1024).toFixed(0)} KB`;
+        setDrawerStatus('profileSaveStatus', 'Photo selected. Press Save Changes to update your profile.', 'success');
+        const reader = new FileReader();
+        reader.onload = () => {
+          profileState.profileImageData = String(reader.result || '');
+          applyAvatarImage(profileState.profileImageData);
+        };
+        reader.onerror = () => setDrawerStatus('profileSaveStatus', 'Could not read that image.', 'error');
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const savePaymentMethodBtn = document.getElementById('savePaymentMethod');
+    if (savePaymentMethodBtn) {
+      savePaymentMethodBtn.addEventListener('click', async () => {
+        const method = document.getElementById('paymentMethodType').value;
+        const accountTitle = document.getElementById('paymentAccountTitle').value.trim();
+        const accountNumber = document.getElementById('paymentAccountNumber').value.replace(/\D+/g, '');
+        if (!accountTitle) {
+          setDrawerStatus('paymentStatus', 'Account title is required.', 'error');
+          return;
+        }
+        if (accountNumber.length < 10 || accountNumber.length > 13) {
+          setDrawerStatus('paymentStatus', 'Enter a valid 10-13 digit account number.', 'error');
+          return;
+        }
+        try {
+          setBusy(savePaymentMethodBtn, true, 'Saving...');
+          await profileApi('save_payment', {
+            method_type: method,
+            account_title: accountTitle,
+            account_number: accountNumber,
+            set_default: 1
+          });
+          document.getElementById('paymentAccountTitle').value = '';
+          document.getElementById('paymentAccountNumber').value = '';
+          setDrawerStatus('paymentStatus', 'Payment method saved securely.', 'success');
+          await fetchProfileDetails();
+        } catch (error) {
+          setDrawerStatus('paymentStatus', 'Could not save payment method.', 'error');
+        } finally {
+          setBusy(savePaymentMethodBtn, false);
+        }
+      });
+    }
+
+    const savedPlacesList = document.getElementById('savedPlacesList');
+    if (savedPlacesList) {
+      savedPlacesList.addEventListener('click', async (event) => {
+        const btn = event.target.closest('[data-delete-place]');
+        if (!btn) return;
+        try {
+          await profileApi('delete_place', { place_id: btn.getAttribute('data-delete-place') });
+          setDrawerStatus('placesStatus', 'Saved place removed.', 'success');
+          await fetchProfileDetails();
+        } catch (error) {
+          setDrawerStatus('placesStatus', 'Could not remove saved place.', 'error');
+        }
+      });
+    }
+
+    const savePlaceBtn = document.getElementById('savePlace');
+    if (savePlaceBtn) {
+      savePlaceBtn.addEventListener('click', async () => {
+        const nameValue = document.getElementById('placeName').value.trim();
+        const addressValue = document.getElementById('placeAddress').value.trim();
+        const latValue = document.getElementById('placeLatitude').value.trim();
+        const lngValue = document.getElementById('placeLongitude').value.trim();
+        if (!nameValue || !addressValue) {
+          setDrawerStatus('placesStatus', 'Place name and address are required.', 'error');
+          return;
+        }
+        if ((latValue && Number.isNaN(Number(latValue))) || (lngValue && Number.isNaN(Number(lngValue)))) {
+          setDrawerStatus('placesStatus', 'Latitude and longitude must be numbers.', 'error');
+          return;
+        }
+        try {
+          setBusy(savePlaceBtn, true, 'Saving...');
+          await profileApi('save_place', {
+            place_type: document.getElementById('placeType').value,
+            name: nameValue,
+            address: addressValue,
+            latitude: latValue,
+            longitude: lngValue
+          });
+          ['placeName', 'placeAddress', 'placeLatitude', 'placeLongitude'].forEach((id) => { document.getElementById(id).value = ''; });
+          setDrawerStatus('placesStatus', 'Place saved.', 'success');
+          await fetchProfileDetails();
+        } catch (error) {
+          setDrawerStatus('placesStatus', 'Could not save place.', 'error');
+        } finally {
+          setBusy(savePlaceBtn, false);
+        }
+      });
+    }
+
+    const saveAppSettingsBtn = document.getElementById('saveAppSettings');
+    if (saveAppSettingsBtn) {
+      saveAppSettingsBtn.addEventListener('click', async () => {
+        try {
+          setBusy(saveAppSettingsBtn, true, 'Saving...');
+          await profileApi('save_settings', {
+            notifications_ride_updates: rideUpdatesToggle && rideUpdatesToggle.checked ? 1 : 0,
+            notifications_promotions: promotionsToggle && promotionsToggle.checked ? 1 : 0,
+            safety_alerts_enabled: safetyAlertsToggle && safetyAlertsToggle.checked ? 1 : 0,
+            language: document.getElementById('settingsLanguage').value,
+            profile_visibility: document.getElementById('settingsProfileVisibility').value,
+            share_trip_status: document.getElementById('settingsShareTrip').checked ? 1 : 0,
+            marketing_opt_in: document.getElementById('settingsMarketing').checked ? 1 : 0
+          });
+          setDrawerStatus('settingsStatus', 'Settings saved.', 'success');
+          await fetchProfileDetails();
+        } catch (error) {
+          setDrawerStatus('settingsStatus', 'Could not save settings.', 'error');
+        } finally {
+          setBusy(saveAppSettingsBtn, false);
+        }
+      });
+    }
+
+    const submitSupportBtn = document.getElementById('submitSupport');
+    if (submitSupportBtn) {
+      submitSupportBtn.addEventListener('click', async () => {
+        const message = document.getElementById('supportMessage').value.trim();
+        if (!message) {
+          setDrawerStatus('supportStatus', 'Please enter a message for support.', 'error');
+          return;
+        }
+        try {
+          setBusy(submitSupportBtn, true, 'Submitting...');
+          await profileApi('submit_support', {
+            category: document.getElementById('supportCategory').value,
+            ride_id: document.getElementById('supportRideSelect').value,
+            message
+          });
+          document.getElementById('supportMessage').value = '';
+          setDrawerStatus('supportStatus', 'Support request submitted.', 'success');
+          await fetchProfileDetails();
+        } catch (error) {
+          setDrawerStatus('supportStatus', 'Could not submit support request.', 'error');
+        } finally {
+          setBusy(submitSupportBtn, false);
+        }
+      });
+    }
+
+    let passengerLogoutInProgress = false;
+    document.getElementById('profileLogout').addEventListener('click', async (event) => {
+      if (passengerLogoutInProgress) return;
+      passengerLogoutInProgress = true;
+      const logoutButton = event.currentTarget;
+      logoutButton.disabled = true;
+      logoutButton.classList.add('is-logging-out');
+      logoutButton.setAttribute('aria-busy', 'true');
+      logoutButton.textContent = 'Logging out...';
+      const serverLogout = fetch(LOGOUT_API, {
+        method: 'POST',
+        credentials: 'same-origin',
+        cache: 'no-store',
+        keepalive: true
+      }).catch(() => null);
+      const firebaseLogout = (() => {
+        try {
+          return window.firebase?.auth?.().signOut?.().catch(() => null) || Promise.resolve();
+        } catch {
+          return Promise.resolve();
+        }
+      })();
+      await Promise.race([
+        Promise.allSettled([serverLogout, firebaseLogout]),
+        new Promise((resolve) => setTimeout(resolve, 1200))
+      ]);
+      [
+        'wow_logged_in',
+        'wow_user_name',
+        'wow_user_email',
+        'wow_user_role',
+        'wow_user_id',
+        'wow_user_phone',
+        'wow_open_profile',
+        'wow_open_notifications',
+        'wow_post_login_redirect',
+        'wow_post_login_source',
+        'wow_post_login_set_at'
+      ].forEach((key) => localStorage.removeItem(key));
+      location.replace('login.html');
+    });
+
+    const notificationsOverlay = document.getElementById('notificationsOverlay');
+    const notificationsPanel = document.getElementById('notificationsPanel');
+
+    function openNotifications() {
+      closeProfile();
+      notificationsOverlay.classList.add('is-open');
+      notificationsPanel.classList.add('is-open');
+      notificationsPanel.setAttribute('aria-hidden', 'false');
+      startPassengerNotificationRealtime();
+      markPassengerNotificationsRead();
+    }
+
+    function closeNotifications() {
+      notificationsOverlay.classList.remove('is-open');
+      notificationsPanel.classList.remove('is-open');
+      notificationsPanel.setAttribute('aria-hidden', 'true');
+    }
+
+    document.getElementById('openNotifications').addEventListener('click', openNotifications);
+    document.addEventListener('click', (event) => {
+      const notificationActionElement = event.target.closest('[data-passenger-notification]');
+      if (notificationActionElement) {
+        event.preventDefault();
+        const item = profileState.notifications.find((notice) => notice.id === notificationActionElement.getAttribute('data-passenger-notification'));
+        openPassengerNotification(item, notificationActionElement.getAttribute('href') || '');
+        return;
+      }
+      if (event.target.closest('[data-open-notification-drawer]')) openNotifications();
+    });
+    document.getElementById('closeNotifications').addEventListener('click', closeNotifications);
+    notificationsOverlay.addEventListener('click', closeNotifications);
+    window.addEventListener('load', startPassengerNotificationRealtime);
+    window.addEventListener('pagehide', () => notificationUnsubscribers.splice(0).forEach((unsubscribe) => { try { unsubscribe(); } catch {} }));
+
+    const subpanelOverlay = document.getElementById('subpanelOverlay');
+    const subpanels = document.querySelectorAll('.subpanel');
+
+    function openSubpanel(id) {
+      subpanelOverlay.classList.add('is-open');
+      subpanels.forEach(panel => {
+        const isTarget = panel.id === id;
+        panel.classList.toggle('is-open', isTarget);
+        panel.setAttribute('aria-hidden', isTarget ? 'false' : 'true');
+      });
+    }
+
+    function closeSubpanels() {
+      subpanelOverlay.classList.remove('is-open');
+      subpanels.forEach(panel => {
+        panel.classList.remove('is-open');
+        panel.setAttribute('aria-hidden', 'true');
+      });
+    }
+
+    document.querySelectorAll('.profile-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const href = btn.getAttribute('data-href');
+        if (href) {
+          closeProfile();
+          requestAnimationFrame(() => { location.href = href; });
+          return;
+        }
+        const target = btn.getAttribute('data-panel');
+        if (target) {
+          closeProfile();
+          if (target === 'writeReviewPanel') {
+            openWriteReview();
+            return;
+          }
+          openSubpanel(target);
+        }
+      });
+    });
+
+    document.querySelectorAll('.subpanel-close').forEach(btn => {
+      btn.addEventListener('click', closeSubpanels);
+    });
+    subpanelOverlay.addEventListener('click', closeSubpanels);
+
+    document.getElementById('saveProfile').addEventListener('click', async () => {
+      const saveBtn = document.getElementById('saveProfile');
+      const newName = document.getElementById('editName').value.trim();
+      const newPhone = document.getElementById('editPhone').value.trim();
+      if (!newName) {
+        setDrawerStatus('profileSaveStatus', 'Full name is required.', 'error');
+        return;
+      }
+      if (newPhone && !/^\+?[0-9\-\s]{10,16}$/.test(newPhone)) {
+        setDrawerStatus('profileSaveStatus', 'Please enter a valid phone number.', 'error');
+        return;
+      }
+      try {
+        setBusy(saveBtn, true, 'Saving...');
+        await profileApi('update_personal', { name: newName, phone: newPhone, profile_image: profileState.profileImageData || '' });
+        localStorage.setItem('wow_user_name', newName);
+        localStorage.setItem('wow_user_phone', newPhone);
+        document.getElementById('homeName').textContent = newName;
+        profileName.textContent = newName;
+        profileInitial.textContent = newName.trim().charAt(0).toUpperCase() || 'G';
+        if (profilePhoneRole) profilePhoneRole.textContent = `${newPhone || 'No phone added'} · Passenger`;
+        applyAvatarImage(profileState.profileImageData);
+        setDrawerStatus('profileSaveStatus', 'Profile updated successfully.', 'success');
+        await fetchProfileDetails();
+      } catch (error) {
+        setDrawerStatus('profileSaveStatus', 'Could not update profile.', 'error');
+        return;
+      } finally {
+        setBusy(saveBtn, false);
+      }
+      closeSubpanels();
+    });
+    document.getElementById('editEmail').value = storedEmail || 'guest@wow.com';
+    document.getElementById('editName').value = name;
+    document.getElementById('editPhone').value = localStorage.getItem('wow_user_phone') || '';
+
+    const RIDES_API = {
+      passengerRides: 'php/get_passenger_rides.php'
+    };
+    let rideHistory = [];
+    let rideHistoryFilter = 'all';
+    let passengerRidesUnsubscribe = null;
+    let passengerRidesLoaded = false;
+    let passengerRidesLoading = false;
+
+    function rideTimestampMillis(value) {
+      if (value && typeof value.toMillis === 'function') return value.toMillis();
+      if (value && Number.isFinite(Number(value.seconds))) return Number(value.seconds) * 1000;
+      const parsed = Date.parse(String(value || ''));
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function mapFirestoreRide(id, row) {
+      const rawStatus = String(row.status || row.rideStatus || 'searching').toLowerCase();
+      const created = row.completedAt || row.cancelledAt || row.startedAt || row.scheduledAt || row.createdAt || row.updatedAt;
+      const pickup = row.pickupAddress || row.pickup || row.pickupLocation?.address || row.pickupLocation || '';
+      const drop = row.destinationAddress || row.dropoffAddress || row.dropoff || row.destination || row.dropoffLocation?.address || row.dropoffLocation || '';
+      const fareValue = Number(row.finalFare ?? row.acceptedFare ?? row.sharedFare ?? row.passengerOfferFare ?? row.fare ?? row.estimatedFare ?? 0);
+      return {
+        id: String(id),
+        title: pickup && drop ? `${pickup} → ${drop}` : (drop || pickup || 'Ride'),
+        pickup: String(pickup || ''),
+        drop: String(drop || ''),
+        date: formatRideDate(created),
+        rawDate: created,
+        createdMs: rideTimestampMillis(created),
+        fare: fareValue > 0 ? `Rs. ${fareValue.toLocaleString('en-PK')}` : 'Fare pending',
+        status: rawStatus === 'completed' ? 'done' : (rawStatus === 'cancelled' ? 'cancelled' : 'booked'),
+        rawStatus,
+        driver: row.driverName || row.assignedDriverName || 'Driver pending',
+        rating: row.driverRating || row.rating || '',
+        payment: row.paymentLabel || row.paymentMethod || 'Payment unavailable',
+        vehicle: row.requestedVehicleType || row.vehicleType || row.rideType || 'Vehicle unavailable'
+      };
+    }
+
+    async function startPassengerRidesRealtime() {
+      if (passengerRidesLoading || passengerRidesLoaded || !window.WowFirestore) return;
+      const list = document.querySelector('.ride-list');
+      try {
+        passengerRidesLoading = true;
+        const { db, uid } = await window.WowFirestore.ready();
+        if (!uid) throw new Error('passenger_auth_required');
+        const snapshot = await db.collection('rides')
+          .where('passengerId', '==', uid)
+          .orderBy('createdAt', 'desc')
+          .limit(40)
+          .get();
+        rideHistory = snapshot.docs
+          .map((doc) => mapFirestoreRide(doc.id, doc.data() || {}))
+          .sort((a, b) => b.createdMs - a.createdMs);
+        renderRecentRides();
+        renderRideHistory();
+        buildReviewOptions();
+        buildSupportRideOptions();
+        passengerRidesLoaded = true;
+      } catch (error) {
+        console.warn('[WOW Passenger Rides] recent ride read failed', error?.code || error?.message);
+        if (list) list.innerHTML = '<div class="empty-state"><p>Please sign in to view your rides.</p></div>';
+      } finally {
+        passengerRidesLoading = false;
+      }
+    }
+
+    async function fetchPassengerRidesFromDb() {
+      try {
+        const query = new URLSearchParams({
+          role: 'passenger',
+          email: localStorage.getItem('wow_user_email') || '',
+          user_id: localStorage.getItem('wow_user_id') || '',
+          limit: '80'
+        });
+        const res = await fetch(`${RIDES_API.passengerRides}?${query.toString()}`);
+        const data = await res.json();
+        if (!res.ok || !data || !data.ok || !Array.isArray(data.rides)) return;
+        rideHistory = data.rides.map((row) => ({
+          id: String(row.id || ''),
+          title: row.pickup && row.dropoff ? `${row.pickup} → ${row.dropoff}` : (row.dropoff || row.pickup || 'Ride'),
+          pickup: row.pickup || '',
+          drop: row.dropoff || '',
+          date: formatRideDate(row.completed_at || row.created_at),
+          rawDate: row.completed_at || row.created_at || '',
+          fare: `Rs. ${Number(row.fare || 0).toLocaleString('en-PK')}`,
+          status: String(row.status || '').toLowerCase() === 'completed' ? 'done' : (String(row.status || '').toLowerCase() === 'cancelled' ? 'cancelled' : 'booked'),
+          driver: row.driver_name || 'Driver',
+          payment: row.payment_method || 'Payment unavailable',
+          vehicle: row.vehicle_type || 'Vehicle unavailable'
+        }));
+        renderRecentRides();
+        renderRideHistory();
+        buildReviewOptions();
+        buildSupportRideOptions();
+      } catch {}
+    }
+
+    function formatRideDate(value) {
+      const millis = rideTimestampMillis(value);
+      const date = new Date(millis || Date.now());
+      return date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    }
+
+    function createRecentRideItem(data) {
+      const item = document.createElement('div');
+      item.className = 'ride-item';
+      if (data.rideId) {
+        item.tabIndex = 0;
+        item.setAttribute('role', 'link');
+        item.addEventListener('click', () => {
+          localStorage.setItem('wow_ride_db_id', data.rideId);
+          location.href = 'passenger-ride.html?rideId=' + encodeURIComponent(data.rideId);
+        });
+        item.addEventListener('keydown', (event) => { if (event.key === 'Enter') item.click(); });
+      }
+
+      const dot = document.createElement('div');
+      dot.className = 'ride-dot';
+      dot.innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+          <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 14.5 9 2.5 2.5 0 0 1 12 11.5Z"></path>
+        </svg>
+      `;
+
+      const content = document.createElement('div');
+      content.className = 'ride-content';
+      const title = document.createElement('strong');
+      title.textContent = data.title;
+      const time = document.createElement('span');
+      time.textContent = `${data.time} · ${data.driver || 'Driver pending'} · ${data.vehicle || 'Vehicle unavailable'} · ${data.payment || 'Payment unavailable'}`;
+      content.appendChild(title);
+      content.appendChild(time);
+
+      const meta = document.createElement('div');
+      meta.className = 'ride-meta';
+      const status = document.createElement('span');
+      status.className = `ride-status ${data.statusClass}`;
+      status.textContent = data.statusLabel;
+
+      const price = document.createElement('div');
+      price.className = 'ride-price';
+      const fare = document.createElement('strong');
+      fare.textContent = data.fareText || 'Rs. --';
+      price.appendChild(fare);
+      if (data.rating) {
+        const rating = document.createElement('span');
+        rating.className = 'ride-rating';
+        rating.textContent = `★ ${data.rating}`;
+        price.appendChild(rating);
+      }
+
+      meta.appendChild(status);
+      meta.appendChild(price);
+
+      item.appendChild(dot);
+      item.appendChild(content);
+      item.appendChild(meta);
+      return item;
+    }
+
+    function renderRecentRides() {
+      const list = document.querySelector('.ride-list');
+      if (!list) return;
+      const recent = rideHistory.slice(0, 6);
+      if (!recent.length) {
+        list.innerHTML = '<div class="empty-state"><p>No rides yet. Book your first ride!</p></div>';
+        return;
+      }
+
+      list.innerHTML = '';
+      recent.forEach(ride => {
+        const statusClass = ride.status === 'done' ? 'completed' : (ride.status === 'cancelled' ? 'cancelled' : 'booked');
+        const statusLabel = ride.rawStatus ? ride.rawStatus.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : (ride.status === 'done' ? 'Completed' : (ride.status === 'cancelled' ? 'Cancelled' : 'Booked'));
+        list.appendChild(createRecentRideItem({
+          rideId: ride.id,
+          title: ride.title,
+          time: ride.date,
+          statusClass,
+          statusLabel,
+          fareText: ride.fare,
+          rating: ride.status === 'done' ? (ride.rating || '') : '',
+          driver: ride.driver,
+          payment: ride.payment,
+          vehicle: ride.vehicle
+        }));
+      });
+    }
+
+    function loadReviews() {
+      try {
+        return JSON.parse(localStorage.getItem('wow_driver_reviews') || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveReviews(reviews) {
+      localStorage.setItem('wow_driver_reviews', JSON.stringify(reviews));
+    }
+
+    function renderRideHistory() {
+      const list = document.getElementById('rideHistoryList');
+      const empty = document.getElementById('rideHistoryEmpty');
+      if (!list || !empty) return;
+      const reviews = loadReviews();
+      list.innerHTML = '';
+
+      const total = rideHistory.length;
+      const doneCount = rideHistory.filter(r => r.status === 'done').length;
+      const cancelledCount = rideHistory.filter(r => r.status === 'cancelled').length;
+      document.getElementById('rideTabAll').textContent = `All (${total})`;
+      document.getElementById('rideTabDone').textContent = `Done (${doneCount})`;
+      document.getElementById('rideTabCancelled').textContent = `Cancelled (${cancelledCount})`;
+
+      const filteredRides = rideHistory.filter((ride) => {
+        if (rideHistoryFilter === 'done') return ride.status === 'done';
+        if (rideHistoryFilter === 'cancelled') return ride.status === 'cancelled';
+        return true;
+      });
+
+      filteredRides.forEach(ride => {
+        const reviewed = reviews.find(r => r.rideId === ride.id);
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.innerHTML = `
+          <div class="history-item-header">
+            <strong>${ride.title}</strong>
+            <span class="review-pill">${ride.status === 'done' ? 'Completed' : 'Cancelled'}</span>
+          </div>
+          <div class="history-item-meta">${ride.date} · ${ride.fare}</div>
+          <div class="history-item-actions">
+            <span class="history-item-meta">${ride.driver}</span>
+            ${ride.status === 'done'
+              ? `<button class="review-btn" data-ride-id="${ride.id}">${reviewed ? 'View Review' : 'Write Review'}</button>`
+              : ''}
+          </div>
+        `;
+        list.appendChild(item);
+      });
+
+      empty.style.display = filteredRides.length ? 'none' : 'grid';
+    }
+
+    function renderRideHistory() {
+      const list = document.getElementById('rideHistoryList');
+      const empty = document.getElementById('rideHistoryEmpty');
+      if (!list || !empty) return;
+      const reviews = loadReviews();
+      list.innerHTML = '';
+
+      const total = rideHistory.length;
+      const doneCount = rideHistory.filter(r => r.status === 'done').length;
+      const cancelledCount = rideHistory.filter(r => r.status === 'cancelled').length;
+      document.getElementById('rideTabAll').textContent = `All (${total})`;
+      document.getElementById('rideTabDone').textContent = `Done (${doneCount})`;
+      document.getElementById('rideTabCancelled').textContent = `Cancelled (${cancelledCount})`;
+
+      const filteredRides = rideHistory.filter((ride) => {
+        if (rideHistoryFilter === 'done') return ride.status === 'done';
+        if (rideHistoryFilter === 'cancelled') return ride.status === 'cancelled';
+        return true;
+      });
+
+      filteredRides.forEach((ride) => {
+        const reviewed = reviews.find(r => r.rideId === ride.id);
+        const statusLabel = ride.status === 'done' ? 'Completed' : (ride.status === 'cancelled' ? 'Cancelled' : 'Booked');
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.innerHTML = `
+          <div class="history-item-header">
+            <strong>${esc(ride.pickup || 'Pickup')} to ${esc(ride.drop || 'Drop-off')}</strong>
+            <span class="review-pill">${statusLabel}</span>
+          </div>
+          <div class="history-item-meta">Pickup: ${esc(ride.pickup || '--')}</div>
+          <div class="history-item-meta">Drop-off: ${esc(ride.drop || '--')}</div>
+          <div class="history-item-meta">${esc(ride.date)} · ${esc(ride.fare)}</div>
+          <div class="history-item-actions">
+            <span class="history-item-meta">Driver: ${esc(ride.driver || 'Driver pending')}</span>
+            ${ride.status === 'done'
+              ? `<button class="review-btn" data-ride-id="${esc(ride.id)}">${reviewed ? 'View Review' : 'Write Review'}</button>`
+              : ''}
+          </div>
+        `;
+        list.appendChild(item);
+      });
+
+      empty.style.display = filteredRides.length ? 'none' : 'grid';
+    }
+
+    let currentReviewRating = 0;
+    let currentReviewRide = null;
+
+    function openWriteReview(rideId) {
+      currentReviewRide = rideId || null;
+      openSubpanel('writeReviewPanel');
+      const rideSelect = document.getElementById('reviewRideSelect');
+      if (rideSelect) {
+        if (rideId) {
+          rideSelect.value = rideId;
+        } else if (rideSelect.options.length) {
+          rideSelect.value = rideSelect.options[0].value;
+          currentReviewRide = rideSelect.value;
+        }
+      }
+      const reviews = loadReviews();
+      const existing = reviews.find(r => r.rideId === currentReviewRide);
+      currentReviewRating = existing ? existing.rating : 0;
+      updateStarUI(currentReviewRating);
+      document.getElementById('reviewComment').value = existing ? existing.comment : '';
+    }
+
+    function buildReviewOptions() {
+      const rideSelect = document.getElementById('reviewRideSelect');
+      if (!rideSelect) return;
+      rideSelect.innerHTML = '';
+      rideHistory
+        .filter(ride => ride.status === 'done')
+        .forEach(ride => {
+          const option = document.createElement('option');
+          option.value = ride.id;
+          option.textContent = `${ride.title} · ${ride.date}`;
+          rideSelect.appendChild(option);
+        });
+      if (rideSelect.options.length) {
+        rideSelect.value = rideSelect.options[0].value;
+      }
+    }
+
+    function buildSupportRideOptions() {
+      const rideSelect = document.getElementById('supportRideSelect');
+      if (!rideSelect) return;
+      const current = rideSelect.value;
+      rideSelect.innerHTML = '<option value="">No ride selected</option>' + rideHistory.map((ride) => (
+        `<option value="${esc(ride.id)}">${esc(ride.title)} · ${esc(ride.date)}</option>`
+      )).join('');
+      if (current) rideSelect.value = current;
+    }
+
+    function updateStarUI(rating) {
+      document.querySelectorAll('#reviewStars .star').forEach(star => {
+        const value = parseInt(star.dataset.value, 10);
+        star.classList.toggle('is-active', value <= rating);
+      });
+    }
+
+    document.getElementById('reviewRideSelect').addEventListener('change', (event) => {
+      currentReviewRide = event.target.value;
+      const reviews = loadReviews();
+      const existing = reviews.find(r => r.rideId === currentReviewRide);
+      currentReviewRating = existing ? existing.rating : 0;
+      updateStarUI(currentReviewRating);
+      document.getElementById('reviewComment').value = existing ? existing.comment : '';
+    });
+
+    document.getElementById('rideHistoryList').addEventListener('click', (event) => {
+      const button = event.target.closest('.review-btn');
+      if (!button) return;
+      openWriteReview(button.getAttribute('data-ride-id'));
+    });
+
+    const rideTabAll = document.getElementById('rideTabAll');
+    const rideTabDone = document.getElementById('rideTabDone');
+    const rideTabCancelled = document.getElementById('rideTabCancelled');
+
+    function setRideTab(nextFilter) {
+      rideHistoryFilter = nextFilter;
+      [rideTabAll, rideTabDone, rideTabCancelled].forEach((tab) => tab.classList.remove('active'));
+      if (rideHistoryFilter === 'done') rideTabDone.classList.add('active');
+      else if (rideHistoryFilter === 'cancelled') rideTabCancelled.classList.add('active');
+      else rideTabAll.classList.add('active');
+      renderRideHistory();
+    }
+
+    rideTabAll.addEventListener('click', () => setRideTab('all'));
+    rideTabDone.addEventListener('click', () => setRideTab('done'));
+    rideTabCancelled.addEventListener('click', () => setRideTab('cancelled'));
+
+    document.querySelectorAll('#reviewStars .star').forEach(star => {
+      star.addEventListener('click', () => {
+        currentReviewRating = parseInt(star.dataset.value, 10);
+        updateStarUI(currentReviewRating);
+      });
+    });
+
+    document.getElementById('submitReview').addEventListener('click', () => {
+      const rideSelect = document.getElementById('reviewRideSelect');
+      const comment = document.getElementById('reviewComment').value.trim();
+      const rideId = currentReviewRide || (rideSelect ? rideSelect.value : null);
+      if (!rideId || currentReviewRating === 0) return;
+
+      const ride = rideHistory.find(r => r.id === rideId);
+      const reviews = loadReviews();
+      const existingIndex = reviews.findIndex(r => r.rideId === rideId);
+      const reviewEntry = {
+        rideId,
+        driver: ride ? ride.driver : 'Driver',
+        passenger: name || 'Passenger',
+        rating: currentReviewRating,
+        comment: comment || 'Great ride!',
+        date: new Date().toLocaleDateString()
+      };
+
+      if (existingIndex >= 0) {
+        reviews[existingIndex] = reviewEntry;
+      } else {
+        reviews.unshift(reviewEntry);
+      }
+
+      saveReviews(reviews);
+      renderRideHistory();
+      closeSubpanels();
+    });
+
+    window.addEventListener('load', startPassengerRidesRealtime);
+    window.addEventListener('pagehide', () => { if (typeof passengerRidesUnsubscribe === 'function') passengerRidesUnsubscribe(); });
+
+    const openProfileFlag = localStorage.getItem('wow_open_profile');
+    if (openProfileFlag === '1') {
+      localStorage.removeItem('wow_open_profile');
+      openProfile();
+    }
+    const openNotificationsFlag = localStorage.getItem('wow_open_notifications');
+    if (openNotificationsFlag === '1') {
+      localStorage.removeItem('wow_open_notifications');
+      openNotifications();
+    }
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="js/wow-firestore.js?v=20260705-1"></script>
+<script src="js/wow-change-password.js?v=20260730-1"></script>
+<script src="js/passenger-chatbot.js?v=20260730-chatbot-fix1"></script>
+<script src="js/passenger-navigation.js?v=20260803-live-notifications1"></script>
+<script src="js/passenger-home-sections.js?v=20260803-expired-rides1"></script>
+</body>
+</html>
+
+
+
+

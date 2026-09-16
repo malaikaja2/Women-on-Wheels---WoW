@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#9a48ff">
+<title>Sign Up - Women on Wheels</title>
+<link rel="stylesheet" href="css/signup.css?v=20260728-2">
+</head>
+<body>
+<div class="signup-box">
+<div class="form-logo"><img src="images/logo.png" alt="Women on Wheels"></div>
+<h2>Sign Up</h2>
+<div class="role-buttons">
+<button type="button" class="role-btn" data-role="passenger" onclick="showForm('passenger')">Sign Up as Passenger</button>
+<button type="button" class="role-btn" data-role="driver" onclick="showForm('driver')">Sign Up as Driver</button>
+</div>
+<div class="auth-message" id="authMessage" role="alert" aria-live="polite"></div>
+<form id="passenger-form" action="php/signup.php" method="POST" novalidate>
+<input type="hidden" name="role" value="passenger">
+<input type="text" name="name" placeholder="Full Name *" required>
+<input type="email" name="email" placeholder="Email *" required>
+<input type="text" name="phone" placeholder="Phone Number *" required>
+<input type="password" name="password" placeholder="Create Password *" required>
+<input type="password" name="confirm_password" placeholder="Confirm Password *" required>
+<button type="submit">Sign Up</button>
+</form>
+<form id="driver-form" action="php/signup.php" method="POST" enctype="multipart/form-data" novalidate>
+<input type="hidden" name="role" value="driver">
+<p class="required-note"><span>*</span> Mandatory fields</p>
+<input type="text" name="name" placeholder="Full Name *" autocomplete="name" required>
+<input type="email" name="email" placeholder="Email *" autocomplete="email" required>
+<input type="text" name="phone" placeholder="Phone Number *" inputmode="tel" autocomplete="tel" required>
+<select name="gender" required aria-label="Gender">
+<option value="">Gender *</option>
+<option value="female">Female</option>
+</select>
+<input type="text" name="vehicle_type" placeholder="Vehicle Type (Car/Bike/Scooty) *" required>
+<input type="text" name="vehicle_number" placeholder="Vehicle Number *" required>
+<input type="text" name="cnic" placeholder="CNIC Number (12345-1234567-1) *" inputmode="numeric" required>
+<input type="text" name="license_number" placeholder="License Number *" required>
+<label class="file-label" for="driverCnicUpload">CNIC Front <span>*</span></label>
+<input id="driverCnicUpload" type="file" name="cnic_upload" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required>
+<label class="file-label" for="driverCnicBack">CNIC Back <span>*</span></label>
+<input id="driverCnicBack" type="file" name="cnic_back" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required>
+<label class="file-label" for="driverLicence">Driving Licence <span>*</span></label>
+<input id="driverLicence" type="file" name="licence_upload" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required>
+<label class="file-label" for="driverProfilePhoto">Profile Photo (optional)</label>
+<input id="driverProfilePhoto" type="file" name="profile_photo" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+<input type="password" name="password" placeholder="Create Password *" autocomplete="new-password" required>
+<input type="password" name="confirm_password" placeholder="Confirm Password *" autocomplete="new-password" required>
+<button type="submit">Submit Driver Application</button>
+</form>
+<p class="login-link">Already have an account? <a href="login.html">Login</a></p>
+</div>
+<script src="js/wow-image-upload.js?v=20260914-secure-images1"></script>
+<script src="js/signup.js?v=20260914-secure-images1"></script>
+</body>
+</html>

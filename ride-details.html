@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#933ee7">
+  <title>Ride Details - Women on Wheels</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/ride-details.css?v=20260902-driver-rating2">
+  <script src="js/wow-role-guard.js"></script>
+</head>
+<body>
+  <header class="ride-detail-header">
+    <button type="button" onclick="history.back()" aria-label="Go back">&larr;</button>
+    <div><span>Women on Wheels</span><h1>Ride Details</h1></div>
+    <span class="ride-detail-status" id="rideDetailStatus">Loading</span>
+  </header>
+  <main class="ride-detail-shell">
+    <section class="ride-detail-loading" id="rideDetailLoading" aria-label="Loading ride details">
+      <i></i><i></i><i></i>
+    </section>
+    <section id="rideDetailContent" hidden>
+      <div class="ride-detail-title"><div><span>Ride ID</span><strong id="rideDetailPublicId">--</strong></div><p>Read-only trip summary</p></div>
+      <section class="ride-detail-card"><div id="rideDetailBody" class="ride-detail-grid"></div><div id="rideDetailActions" class="ride-detail-actions"></div></section>
+    </section>
+    <section class="ride-detail-error" id="rideDetailError" hidden>
+      <span>!</span><h2>Ride Not Found</h2><p></p><a href="dashboard.html">Back to Dashboard</a>
+    </section>
+  </main>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="js/wow-firestore.js"></script>
+  <script src="js/ride-details.js?v=20260902-driver-rating2"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#faf7fc">
+  <title>Lost &amp; Found Conversation - Women on Wheels</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/lost-found.css?v=20260730-driver3">
+  <link rel="stylesheet" href="css/lost-found-chat.css?v=20260730-chat1">
+</head>
+<body data-call-role="">
+  <main class="lf-chat-shell">
+    <header class="lf-chat-header">
+      <button class="lf-back" id="lfChatBack" type="button" aria-label="Back">&larr;</button>
+      <div><span class="lf-eyebrow">Women on Wheels support</span><h1>Lost &amp; Found Conversation</h1><p>Private case conversation. Phone numbers are never shared.</p></div>
+      <span class="lf-chat-live"><i></i> Live</span>
+    </header>
+    <section class="lf-chat-context" aria-label="Case details">
+      <div><span>Case Number</span><strong id="lfChatCase">Loading…</strong></div>
+      <div><span>Lost Item</span><strong id="lfChatItem">Loading…</strong></div>
+      <div><span>Passenger</span><strong id="lfChatPassenger">Loading…</strong></div>
+      <div><span>Driver</span><strong id="lfChatDriver">Loading…</strong></div>
+      <div><span>Case Status</span><strong id="lfChatStatus">Loading…</strong></div>
+    </section>
+    <section class="lf-chat-card">
+      <div class="lf-chat-card-head"><div><strong id="lfChatPeer">Conversation</strong><span id="lfChatRide">Completed ride</span></div><a id="lfChatSummary" href="ride-details.html">View Ride Summary</a></div>
+      <div class="lf-chat-thread" id="lfChatThread" aria-live="polite"><div class="lf-chat-empty">Loading conversation…</div></div>
+      <div class="lf-chat-typing" id="lfChatTyping" hidden>Typing…</div>
+      <form class="lf-chat-composer" id="lfChatForm">
+        <label class="sr-only" for="lfChatInput">Message</label>
+        <textarea id="lfChatInput" maxlength="1000" rows="1" placeholder="Write a Lost & Found message…" required></textarea>
+        <button type="submit" id="lfChatSend">Send</button>
+      </form>
+      <p class="lf-chat-error" id="lfChatError" role="alert"></p>
+    </section>
+  </main>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="js/wow-firestore.js"></script>
+  <script src="js/lost-found-conversation.js?v=20260730-chat1"></script>
+</body>
+</html>

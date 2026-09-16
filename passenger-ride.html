@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#9a48ff">
+  <title>Passenger Ride - Women on Wheels</title>
+  <link rel="stylesheet" href="css/passenger-ride.css?v=20260905-review1">
+  <link rel="stylesheet" href="css/passenger-unified.css?v=20260728-nav2">
+  <link rel="stylesheet" href="css/passenger-chatbot.css?v=20260706-chatbot2">
+  <link rel="stylesheet" href="css/wow-call.css?v=20260727-call1">
+  <link rel="stylesheet" href="css/wow-demo-payment.css?v=20260727-pay1">
+  <link rel="stylesheet" href="css/wow-ride-chat.css?v=20260915-chat1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="js/wow-role-guard.js?v=20260411-1"></script>
+</head>
+<body class="passenger-shell">
+  <header class="ride-topbar">
+    <button class="back-btn" type="button" onclick="history.back()">
+      <span class="back-icon">&#8592;</span>
+      <span class="back-text">Back</span>
+    </button>
+    <div class="ride-topbar-copy">
+      <span id="rideHeaderTitle">Loading your ride...</span>
+      <strong id="passengerName">--</strong>
+    </div>
+    <span class="ride-header-status" id="rideHeaderStatus">Loading</span>
+  </header>
+
+  <main class="ride-shell">
+    <section class="ride-not-found" id="rideNotFound" hidden>
+      <span aria-hidden="true">!</span><h1>Ride Not Found</h1>
+      <p>This ride is unavailable or you no longer have access to it.</p>
+      <a href="dashboard.html">Back to Dashboard</a>
+    </section>
+    <nav class="ride-panel-tabs" id="ridePanelTabs" aria-label="Ride sections" hidden>
+      <button type="button" data-ride-panel="overview">Overview</button>
+      <button type="button" data-ride-panel="chat">Chat</button>
+      <button type="button" data-ride-panel="call">Call</button>
+      <button type="button" data-ride-panel="tracking">Tracking</button>
+      <button type="button" data-ride-panel="payment">Payment</button>
+    </nav>
+    <section class="ride-completed-banner is-hidden" id="rideCompletedBanner" role="status" aria-live="assertive">
+      <div class="ride-completed-icon" aria-hidden="true">&#10003;</div>
+      <div class="ride-completed-content">
+        <span>RIDE COMPLETED</span>
+        <h2>You have arrived safely</h2>
+        <p id="rideCompletedSummary">Your ride is complete. You can now rate your driver.</p>
+      </div>
+      <button class="ride-review-action" id="openRatingBtn" type="button" hidden>Rate Driver</button>
+    </section>
+
+    <section class="wow-payment-card" id="passengerPaymentCard" data-panel-content="payment" hidden>
+      <div class="wow-payment-head"><div><span class="wow-payment-eyebrow">Secure payment</span><h2>Ride payment</h2></div><span class="wow-payment-badge" id="passengerPaymentBadge">Unpaid</span></div>
+      <div class="wow-payment-grid"><div><span>Method</span><strong id="paymentCardMethod">Not selected</strong></div><div><span>Final fare</span><strong id="paymentCardFare">PKR --</strong></div><div><span>Ride ID</span><strong id="paymentCardRide">--</strong></div></div>
+      <button class="wow-payment-action" id="openPaymentBtn" type="button">Choose payment method</button>
+      <span class="wow-payment-note" id="paymentCardNote">Final payment becomes available when the ride is completed.</span>
+    </section>
+    <section class="ride-map" id="rideTrackingPanel" data-panel-content="tracking">
+      <div id="passengerRideMap"></div>
+      <div class="eta-pill">
+        <span>ETA</span>
+        <strong id="passengerEta">--</strong>
+      </div>
+      <button class="tracking-recenter-btn" id="passengerTrackingRecenter" type="button">Recenter</button>
+      <button class="tracking-follow-btn" id="passengerTrackingFollow" type="button" aria-pressed="true">Following</button>
+      <button class="tracking-expand-btn" id="passengerMapExpand" type="button">Expand</button>
+      <div class="tracking-legend" aria-label="Live map legend">
+        <span><i class="passenger-dot"></i>You</span>
+        <span><i class="driver-dot"></i>Driver</span>
+      </div>
+    </section>
+    <section class="tracking-status-card" aria-live="polite">
+      <strong id="passengerTrackingStatus">Connecting to live ride...</strong>
+      <span id="passengerPeerStatus">Waiting for driver's location.</span>
+    </section>
+
+    <div class="passenger-map-overlay" id="passengerMapOverlay" hidden></div>
+    <section class="passenger-map-modal" id="passengerMapModal" role="dialog" aria-modal="true" aria-labelledby="passengerMapTitle" hidden>
+      <header class="passenger-map-modal-head">
+        <div>
+          <span>Live Tracking</span>
+          <h2 id="passengerMapTitle">Ride map</h2>
+        </div>
+        <button id="passengerMapClose" type="button" aria-label="Close expanded map">&times;</button>
+      </header>
+      <div class="passenger-map-modal-body">
+        <div id="passengerRideMapFull"></div>
+        <div class="passenger-map-controls">
+          <button id="passengerMapRecenter" type="button">Recenter</button>
+          <button id="passengerMapFollow" type="button" aria-pressed="true">Following</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="vehicle-card">
+      <div class="vehicle-badge" id="vehicleBadge">Car</div>
+      <div class="vehicle-info">
+        <strong id="vehicleType">Loading...</strong>
+        <span id="vehicleModel">Loading vehicle details...</span>
+        <span class="driver-name" id="driverName">Loading driver...</span>
+      </div>
+      <div class="driver-photo" id="driverPhoto">--</div>
+    </section>
+
+    <section class="trip-card">
+      <div class="trip-row">
+        <span class="dot pickup-dot"></span>
+        <div>
+          <span class="trip-label">Pickup</span>
+          <strong class="trip-text" id="passengerPickupText">Loading...</strong>
+        </div>
+      </div>
+      <div class="trip-row">
+        <span class="dot drop-dot"></span>
+        <div>
+          <span class="trip-label">Dropoff</span>
+          <strong class="trip-text" id="passengerDropText">Loading...</strong>
+        </div>
+      </div>
+      <div class="trip-progress">
+        <div class="progress-label">
+          <span>Distance remaining</span>
+          <strong id="passengerDistance">-- km</strong>
+        </div>
+        <div class="progress-bar">
+          <span id="passengerProgress"></span>
+        </div>
+      </div>
+      <div class="trip-fare">
+        <span>Booked Fare</span>
+        <strong id="passengerFareText">--</strong>
+      </div>
+      <div class="trip-fare">
+        <span>Payment Method</span>
+        <strong id="passengerPaymentMethod">--</strong>
+      </div>
+      <div class="trip-fare">
+        <span>Ride Status</span>
+        <strong id="passengerRideStatusText">Connecting</strong>
+      </div>
+      <div class="trip-fare">
+        <span>Your WOW Code</span>
+        <strong id="passengerWowCode">--</strong>
+      </div>
+    </section>
+
+    <section class="contact-row">
+      <button class="contact-btn" id="passengerChat">Chat</button>
+      <button class="contact-btn" id="passengerCall">Call</button>
+      <button class="contact-btn" id="passengerHelp" onclick="location.href='help.html'">Help</button>
+    </section>
+
+    <button class="cancel-btn" id="passengerCancelRide">Cancel Ride</button>
+    <div class="passenger-emergency-actions"><button class="sos-btn blink" id="passengerSosBtn">Emergency SOS</button><a class="sos-btn emergency-call-btn" href="tel:15">Call 15</a></div>
+
+  </main>
+
+  <div class="wow-payment-overlay" id="paymentOverlay" hidden>
+    <section class="wow-payment-dialog" role="dialog" aria-modal="true" aria-labelledby="demoPaymentTitle">
+      <div id="paymentEntryView">
+        <span class="wow-payment-eyebrow">Women on Wheels</span><h2 id="demoPaymentTitle">Ride payment</h2>
+        <div class="wow-methods" id="paymentMethods">
+          <button class="wow-method" data-payment-method="cash" type="button">💵 Cash</button><button class="wow-method" data-payment-method="easypaisa" type="button">📱 Easypaisa</button>
+          <button class="wow-method" data-payment-method="jazzcash" type="button">📲 JazzCash</button><button class="wow-method" data-payment-method="nayapay" type="button">◈ NayaPay</button>
+        </div>
+        <div class="wow-payment-grid"><div><span>Passenger</span><strong id="demoPassengerName">Passenger</strong></div><div><span>Ride ID</span><strong id="demoRideId">--</strong></div><div><span>Fare</span><strong id="demoFare">PKR --</strong></div></div>
+        <div class="wow-payment-form" id="onlinePaymentFields">
+          <label>Pakistani mobile number<input id="demoMobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="03XXXXXXXXX" maxlength="13"><span class="wow-field-error" id="demoMobileError"></span></label>
+          <label>Payment PIN<input id="demoPin" type="password" inputmode="numeric" autocomplete="off" placeholder="4 digits" maxlength="4"><span class="wow-field-error" id="demoPinError"></span></label>
+        </div>
+        <span class="wow-field-error" id="demoPaymentError" role="alert"></span>
+        <div class="wow-payment-actions"><button class="wow-payment-secondary" id="cancelPaymentBtn" type="button">Cancel</button><button class="wow-payment-action" id="payNowBtn" type="button">Pay Now</button></div>
+      </div>
+      <div class="wow-processing" id="paymentProcessingView" hidden><div class="wow-spinner"></div><h2>Processing Payment…</h2><p>Please wait while your payment is securely confirmed.</p></div>
+      <div class="wow-payment-result" id="paymentResultView" hidden><div class="wow-result-icon" id="paymentResultIcon">✓</div><h2 id="paymentResultTitle">Payment Successful</h2><p id="paymentResultText"></p><div class="wow-result-summary" id="paymentResultSummary"></div><div class="wow-payment-actions"><button class="wow-payment-secondary" id="retryPaymentBtn" type="button">Retry / Change Method</button><button class="wow-payment-action" id="backToRideBtn" type="button">Back to Ride</button></div></div>
+    </section>
+  </div>
+
+  <div class="review-modal-overlay is-hidden" id="ratingCard" aria-hidden="true">
+    <section class="review-modal" role="dialog" aria-modal="true" aria-labelledby="ratingDriverHeading">
+      <button class="review-close" id="ratingCloseBtn" type="button" aria-label="Review later">&times;</button>
+      <div class="review-driver">
+        <img id="ratingDriverPhoto" src="images/logo.png" alt="Assigned driver">
+        <div><span>Ride completed</span><strong id="ratingDriverName">Your driver</strong><small id="ratingVehicleName">Assigned vehicle</small></div>
+      </div>
+      <h2 id="ratingDriverHeading">How was your ride?</h2>
+      <p>Your feedback helps us provide safer and better rides.</p>
+      <div class="rating-stars" id="ratingStars" role="radiogroup" aria-label="Driver rating">
+        <button type="button" class="star-btn" data-star="1" role="radio" aria-checked="false" aria-label="1 star, Poor">&#9734;</button>
+        <button type="button" class="star-btn" data-star="2" role="radio" aria-checked="false" aria-label="2 stars, Fair">&#9734;</button>
+        <button type="button" class="star-btn" data-star="3" role="radio" aria-checked="false" aria-label="3 stars, Good">&#9734;</button>
+        <button type="button" class="star-btn" data-star="4" role="radio" aria-checked="false" aria-label="4 stars, Very Good">&#9734;</button>
+        <button type="button" class="star-btn" data-star="5" role="radio" aria-checked="false" aria-label="5 stars, Excellent">&#9734;</button>
+      </div>
+      <strong class="rating-label" id="ratingLabel">Select a rating</strong>
+      <div class="review-tags" id="ratingTags" aria-label="Quick feedback"></div>
+      <textarea id="ratingReviewText" class="rating-input" maxlength="500" placeholder="Share something about your ride..."></textarea>
+      <button type="button" class="rating-submit-btn" id="ratingSubmitBtn"><span class="rating-spinner" aria-hidden="true"></span><span id="ratingSubmitText">Submit Review</span></button>
+      <button type="button" class="review-skip" id="ratingSkipBtn">Skip for Now</button>
+      <span class="rating-note" id="ratingNote" role="status" aria-live="polite"></span>
+      <div class="review-success is-hidden" id="ratingSuccess"><span>&#10003;</span><strong>Thank you for your feedback!</strong><button type="button" id="ratingDoneBtn">Done</button></div>
+    </section>
+  </div>
+
+  <div class="modal-overlay" id="cancelOverlay"></div>
+  <div class="modal-overlay" id="driverOfferOverlay"></div>
+  <section class="driver-offer-modal" id="driverOfferModal" aria-hidden="true">
+    <div class="driver-offer-head">
+      <img id="offerDriverPhoto" class="offer-driver-photo" src="images/logo.png" alt="Driver profile photo">
+      <div>
+        <span>Driver Offer</span>
+        <strong id="offerDriverName">--</strong>
+      </div>
+      <div class="offer-countdown"><strong id="offerCountdown">30</strong>s</div>
+    </div>
+    <div class="driver-offer-grid">
+      <span>Contact <strong id="offerDriverPhone">Private in-app calling</strong></span>
+      <span>Vehicle <strong id="offerVehicleType">--</strong></span>
+      <span>Number <strong id="offerVehicleNumber">--</strong></span>
+      <span>Rating <strong id="offerDriverRating">--</strong></span>
+    </div>
+    <div class="driver-offer-route">
+      <div><span class="dot pickup-dot"></span><p id="offerPickupText">Pickup</p></div>
+      <div><span class="dot drop-dot"></span><p id="offerDropText">Drop-off</p></div>
+    </div>
+    <div class="driver-offer-prices">
+      <span>Passenger offer <strong id="offerPassengerPrice">Rs. 0</strong></span>
+      <span id="offerDriverPriceRow">Driver offer <strong id="offerDriverPrice">Rs. 0</strong></span>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn danger" id="acceptDriverOfferBtn" type="button">Accept Driver</button>
+      <button class="modal-btn outline" id="rejectDriverOfferBtn" type="button">Reject</button>
+      <button class="modal-btn outline" id="cancelDriverRequestBtn" type="button">Cancel Request</button>
+    </div>
+    <p class="offer-status-note" id="driverOfferNote"></p>
+  </section>
+
+  <div class="modal-card" id="cancelModal">
+    <h4>Cancel this ride?</h4>
+    <p>Are you sure you want to cancel this ride? This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="modal-btn outline" id="keepRideBtn">Keep Ride</button>
+      <button class="modal-btn danger" id="confirmCancelBtn">Yes, Cancel</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="sosOverlay"></div>
+  <section class="sos-panel" id="sosPanel" aria-hidden="true">
+    <div class="sos-header">
+      <button class="back-btn" id="closeSos" type="button">
+        <span class="back-icon">&#8592;</span>
+        <span class="back-text">Back</span>
+      </button>
+      <strong>Emergency SOS</strong>
+    </div>
+    <div class="sos-banner">
+      <div class="sos-icon">!</div>
+      <div class="sos-text">
+        <strong id="sosHeadline">Emergency SOS</strong>
+        <span id="sosSubtext">Press the SOS button to alert authorities and emergency contacts.</span>
+      </div>
+    </div>
+    <button class="activate-sos-btn blink" id="activateSosBtn">Activate SOS</button>
+    <section class="sos-contacts">
+      <div class="sos-contacts-head">
+        <strong>Emergency Contacts</strong>
+        <span>Add trusted contacts for instant alerts</span>
+      </div>
+      <div class="sos-contact-form">
+        <input type="text" id="contactNameInput" placeholder="Contact Name">
+        <input type="text" id="contactPhoneInput" placeholder="Phone Number">
+        <button type="button" id="saveContactBtn">Save Contact</button>
+      </div>
+      <div class="sos-contact-list" id="sosContactList"></div>
+    </section>
+    <div class="sos-info">
+      <strong>When SOS is activated:</strong>
+      <ul>
+        <li>Your live location is shared with contacts</li>
+        <li>Emergency services (15) are notified</li>
+        <li>Ride details sent to family members</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="panel-overlay" id="chatOverlay"></div>
+  <section class="chat-panel" id="chatPanel" aria-hidden="true">
+    <div class="chat-header">
+      <button class="back-btn chat-close-btn" id="closeChat" type="button" aria-label="Close chat">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <div class="chat-user">
+        <div class="chat-avatar" id="chatAvatar">D</div>
+        <div>
+          <strong id="chatDriverName">--</strong>
+          <span class="chat-status"><span class="status-dot"></span>Driver Online</span>
+        </div>
+      </div>
+    </div>
+    <div class="chat-notice">This chat is monitored for safety. Contact numbers are masked.</div>
+    <div class="chat-body" id="chatBody"></div>
+    <div class="chat-quick">
+      <button class="quick-chip" type="button">I'm at the pickup point</button>
+      <button class="quick-chip" type="button">Please wait, in 2 min</button>
+      <button class="quick-chip" type="button">Thank you!</button>
+    </div>
+    <div class="chat-input">
+      <button class="chat-icon-btn" type="button" id="emojiBtn" aria-label="Add emoji">😊</button>
+      <input type="text" id="chatInput" placeholder="Type a message...">
+      <button id="sendChat" class="send-btn">Send</button>
+    </div>
+  </section>
+
+  <div class="panel-overlay" id="callOverlay"></div>
+  <section class="call-panel" id="callPanel" aria-hidden="true">
+    <div class="call-header">
+      <button class="back-btn" id="closeCall" type="button">
+        <span class="back-icon">&#8592;</span>
+        <span class="back-text">Back</span>
+      </button>
+      <strong>Calling Driver</strong>
+    </div>
+    <div class="call-card">
+      <div class="avatar large" id="callAvatar">--</div>
+      <strong id="callDriverName">--</strong>
+      <span id="callStatus">Ready to call</span>
+      <div class="call-timer" id="callTimer">00:00</div>
+    </div>
+    <div class="call-live-actions">
+      <button class="call-action call-action--answer" id="answerCallBtn" hidden><span class="call-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.7 10.8c1.5 3 3.7 5.2 6.6 6.7l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.2.6 3.4.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.3c.6 0 1 .4 1 1 0 1.2.2 2.3.6 3.4.1.4 0 .8-.2 1z"/></svg></span><span>Answer</span></button>
+      <button class="call-action call-action--decline" id="declineCallBtn" hidden><span class="call-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9c-3.2 0-6.2 1-8.7 2.8-.4.3-.5.9-.2 1.3l1.7 2.2c.3.4.8.5 1.2.2l2.2-1.4c.3-.2.5-.5.5-.9v-1c2.1-.6 4.4-.6 6.6 0v1c0 .4.2.7.5.9l2.2 1.4c.4.3.9.2 1.2-.2l1.7-2.2c.3-.4.2-1-.2-1.3A14.9 14.9 0 0 0 12 9z"/></svg></span><span>Decline</span></button>
+      <button class="call-action" id="muteCallBtn" aria-pressed="false"><span class="call-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11z"/></svg></span><span>Mute</span></button>
+      <button class="call-action" id="speakerCallBtn" aria-pressed="true"><span class="call-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg></span><span>Speaker</span></button>
+      <button class="call-action call-action--end" id="endCallBtn"><span class="call-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9c-3.2 0-6.2 1-8.7 2.8-.4.3-.5.9-.2 1.3l1.7 2.2c.3.4.8.5 1.2.2l2.2-1.4c.3-.2.5-.5.5-.9v-1c2.1-.6 4.4-.6 6.6 0v1c0 .4.2.7.5.9l2.2 1.4c.4.3.9.2 1.2-.2l1.7-2.2c.3-.4.2-1-.2-1.3A14.9 14.9 0 0 0 12 9z"/></svg></span><span>End</span></button>
+    </div>
+  </section>
+
+  <script src="js/wow-realtime.js?v=20260420-1"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="js/wow-firestore.js?v=20260711-rides1"></script>
+  <script src="js/wow-financial.js?v=20260729-financial1"></script>
+  <script src="js/wow-demo-payment.js?v=20260729-financial1"></script>
+<script src="js/wow-ride-chat.js?v=20260731-crossplatform1"></script>
+<script src="js/wow-ride-call.js?v=20260731-crossplatform1"></script>
+<script src="js/wow-vehicle.js?v=20260713-vehicle2"></script>
+<script src="js/wow-live-tracking.js?v=20260916-driver-earnings-ledger1"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js"></script>
+<script src="php/mapbox_config.php"></script>
+<script src="js/mapbox-services.js?v=20260728-detail1"></script>
+<script src="js/passenger-ride.js?v=20260905-review1"></script>
+<script src="js/passenger-chatbot.js?v=20260730-chatbot-fix1"></script>
+<script src="js/passenger-navigation.js?v=20260803-live-notifications1"></script>
+</body>
+</html>

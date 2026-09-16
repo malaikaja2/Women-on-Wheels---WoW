@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#9a48ff">
+  <title>Driver Profile - Women on Wheels</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/driver-nav.css?v=20260727-five-nav1">
+  <link rel="stylesheet" href="css/wow-change-password.css?v=20260730-1">
+  <script src="js/wow-role-guard.js?v=20260705-1"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"Manrope","Segoe UI",Tahoma,sans-serif;min-height:100vh;padding:14px 14px 120px;background:radial-gradient(circle at top left,rgba(240,106,165,.16),transparent 28%),radial-gradient(circle at top right,rgba(154,72,255,.14),transparent 24%),linear-gradient(180deg,#fff8fe 0%,#f7f1fb 48%,#f2ebfa 100%);color:#28153b}
+    .shell{width:min(960px,100%);margin:0 auto;display:grid;gap:12px}
+    .hero{background:linear-gradient(135deg,#9a48ff 0%,#f06aa5 100%);color:#fff;border-radius:28px;padding:18px 20px;box-shadow:0 18px 40px rgba(112,53,178,.14)}
+    .top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+    .back-btn,.link-btn{border:none;border-radius:16px;font-weight:800;cursor:pointer}
+    .back-btn{background:rgba(255,255,255,.16);color:#fff;padding:12px 14px}
+    .link-btn{background:#fff;color:#9a48ff;padding:12px 14px;text-decoration:none}
+    .hero strong{display:block;font-size:26px;margin-top:2px}
+    .card{background:rgba(255,255,255,.92);border:1px solid rgba(154,72,255,.14);border-radius:24px;box-shadow:0 18px 40px rgba(112,53,178,.08);padding:18px}
+    .profile-box{display:flex;align-items:center;gap:14px;padding:16px;border-radius:18px;background:#fff;border:1px solid rgba(154,72,255,.1)}
+    .avatar{width:66px;height:66px;border-radius:22px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:24px;background:linear-gradient(135deg,#9a48ff 0%,#f06aa5 100%)}
+    .summary-status{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}.summary-status span{padding:4px 8px;border-radius:999px;background:#f7efff;color:#6e35a5;font-size:11px;font-weight:800}
+    .meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+    .meta > div{padding:9px 11px;border-radius:14px;background:rgba(154,72,255,.06);border:1px solid rgba(154,72,255,.08)}
+    .meta span{display:block;color:#7d6a91;font-size:12px}
+    .meta strong{display:block;margin-top:4px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .danger{background:#fff;color:#d64a85;border:1px solid rgba(214,74,133,.22)}
+    .profile-sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}.profile-sections section{padding:13px;border-radius:16px;background:#fff;border:1px solid rgba(154,72,255,.1);align-self:start}
+    .profile-sections h2{font-size:15px;margin-bottom:8px;color:#5d347e}.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+    .detail-grid div{padding:8px;border-radius:11px;background:#faf6ff}.detail-grid span{display:block;color:#7d6a91;font-size:10px}.detail-grid strong{display:block;margin-top:2px;font-size:12px;overflow-wrap:anywhere}
+    .notice{margin-top:9px;padding:10px;border-radius:12px;background:#fff3d9;color:#7a4b00;font-size:12px;font-weight:700}.section-link,.quick-links a{display:inline-flex;margin-top:10px;color:#7b2cbf;font-weight:800;text-decoration:none}
+    .quick-links{display:flex;gap:10px;flex-wrap:wrap}.quick-links a,.quick-links button{padding:9px 11px;border:0;border-radius:12px;background:#f7efff;font:inherit;cursor:pointer}.mini-review{padding:10px 0;border-bottom:1px solid #eee5f7}.mini-review:last-child{border:0}
+    .setting-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.setting-grid label{display:flex;gap:7px;align-items:center;padding:8px;border-radius:11px;background:#faf6ff;font-size:12px;font-weight:700}.setting-grid input{accent-color:#9a48ff;width:16px;height:16px}
+    @media(max-width:720px){body{padding-bottom:126px}.profile-sections{grid-template-columns:1fr}}
+    @media(max-width:480px){.detail-grid,.meta{grid-template-columns:1fr}}
+  </style>
+<link rel="stylesheet" href="css/passenger-chatbot.css?v=20260722-intent1">
+</head>
+<body data-driver-page="profile">
+  <main class="shell">
+    <section class="hero">
+      <div class="top">
+        <button class="back-btn" type="button" data-driver-back data-fallback="driver-dashboard.html">
+          <span class="back-icon">&#8592;</span>
+          <span class="back-text">Back</span>
+        </button>
+        <div><span>Women on Wheels</span><strong>Driver Profile</strong></div>
+        <a class="link-btn" href="driver-dashboard.html">Dashboard</a>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="profile-box">
+        <div class="avatar" id="profileInitial"></div>
+        <div>
+          <strong id="profileName">Loading profile</strong>
+          <span id="profileEmail" style="color:#7d6a91">Loading email</span>
+          <div class="summary-status"><span id="verificationStatus">Pending</span><span id="profileStatus">Offline</span></div>
+        </div>
+      </div>
+      <div class="meta">
+        <div><span>Driver ID</span><strong id="driverId">Loading</strong></div>
+        <div><span>Phone</span><strong id="profilePhone">Contact pending</strong></div>
+        <div><span>Approval Status</span><strong id="approvalStatus">Pending</strong></div>
+        <div><span>CNIC</span><strong id="driverCnic">Verification pending</strong></div>
+        <div><span>Vehicle Model</span><strong id="driverVehicle">WOW Car</strong></div>
+        <div><span>Vehicle Type</span><strong id="driverType">Car</strong></div>
+        <div><span>Vehicle Registration Number</span><strong id="driverPlate">Registration pending</strong></div>
+        <div><span>License Number</span><strong id="driverLicense">Verification pending</strong></div>
+        <div><span>Rating</span><strong id="profileRating">New driver</strong></div>
+        <div><span>Completed Rides</span><strong id="completedRides">0</strong></div>
+        <div><span>Total Earnings</span><strong id="totalEarnings">Rs. 0</strong></div>
+      </div>
+      <div class="profile-sections" id="profileSections">
+        <section><h2>Personal Information</h2><div class="detail-grid" id="personalInfo"></div></section>
+        <section><h2>Verification Status</h2><div class="detail-grid" id="verificationInfo"></div><p class="notice" id="verificationReason" hidden></p></section>
+        <section><h2>Vehicle Information</h2><div class="detail-grid" id="vehicleInfo"></div><p class="notice" id="pendingVehicleNotice" hidden>Updated sensitive vehicle details are pending admin approval.</p></section>
+        <section><h2>Driver Documents</h2><div class="detail-grid" id="documentInfo"></div></section>
+        <section><h2>Performance & Ride Statistics</h2><div class="detail-grid" id="performanceInfo"></div></section>
+        <section><h2>Earnings Summary</h2><div class="detail-grid" id="earningsInfo"></div><a class="section-link" href="driver-earnings.html">View Full Earnings</a></section>
+        <section><h2>Recent Reviews</h2><div id="profileReviews"></div><a class="section-link" href="driver-reviews.html">View All Reviews</a></section>
+        <section><h2>Payment & Wallet</h2><div class="detail-grid" id="paymentInfo"></div><a class="section-link" href="driver-earnings.html">Payment History</a></section>
+        <section><h2>Notification Settings</h2><div class="setting-grid">
+          <label><input type="checkbox" data-setting="rideRequests"> Ride requests</label><label><input type="checkbox" data-setting="chatMessages"> Chat messages</label>
+          <label><input type="checkbox" data-setting="sound"> Notification sound</label><label><input type="checkbox" data-setting="vibration"> Vibration</label>
+          <label><input type="checkbox" data-setting="scheduledReminders"> Scheduled reminders</label><label><input type="checkbox" data-setting="paymentAlerts"> Payment alerts</label>
+          <label><input type="checkbox" data-setting="adminMessages"> Admin messages</label>
+        </div><p class="notice" id="settingsMessage" hidden></p></section>
+        <section><h2>Privacy, Security & Support</h2><div class="quick-links"><button class="section-link wow-change-password-link" type="button" data-wow-change-password data-login-url="login.html?role=driver" data-logout-url="php/logout.php" data-logout-method="POST">Change Password</button><a href="driver-help.html">Help & safety</a><a href="contact.html">Contact support</a><a href="driver-help.html">Report an issue</a></div></section>
+      </div>
+      <div class="actions">
+        <a class="link-btn" href="profile.html">Edit Profile</a>
+        <button class="link-btn danger" type="button" data-driver-logout>Logout</button>
+      </div>
+    </section>
+  </main>
+
+  <div data-driver-nav-mount></div>
+  <script src="js/driver-nav.js?v=20260730-driver-identity3"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script><script src="js/wow-firestore.js?v=20260730-auth-uid1"></script><script src="js/wow-change-password.js?v=20260730-1"></script><script src="js/wow-financial.js?v=20260729-financial1"></script><script src="js/driver-profile-live.js?v=20260906-profile-fields1"></script><script src="js/passenger-chatbot.js?v=20260730-chatbot-fix1"></script>
+</body>
+</html>

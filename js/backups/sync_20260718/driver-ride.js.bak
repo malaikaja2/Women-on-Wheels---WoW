@@ -1,0 +1,1655 @@
+let rideMap;
+let rideMapFull;
+let rideBounds;
+let callInterval;
+let callSeconds = 0;
+let ridePath = [];
+let rideStep = 0;
+let rideMarker;
+let rideTotalDistance = 0;
+let rideTotalDuration = 0;
+let rideTicker;
+let ridePickup;
+let rideDrop;
+let ridePhase = "toPickup";
+let rideDriverAnchor;
+let rideChatUnsubscribe = null;
+let tripTimerInterval = null;
+let tripStartedAtMs = 0;
+let driverRideRefreshTimer = null;
+let driverGeoWatchId = null;
+let driverFallbackTicker = null;
+let pendingRideUnsubscribe = null;
+let driverOfferUnsubscribe = null;
+let driverRequestDocs = new Map();
+let driverOfferStatusByRide = new Map();
+let driverOfferNotifications = new Set();
+let driverRideLiveTracker = null;
+let driverStartPending = false;
+let driverCompletePending = false;
+const driverStaticMarkersByMap = new WeakMap();
+
+const SOS_API = {
+  send: "php/send_sos.php"
+};
+
+const FARE_API = {
+  saveData: "php/save_fare_data.php"
+};
+
+const RIDE_API = {
+  updateStatus: "php/update_ride_status.php",
+  details: "php/get_ride.php"
+};
+
+function initDriverRideMap() {
+  const mapEl = document.getElementById("driverRideMap");
+  if (!mapEl || !window.WowMapbox) return;
+  rideMap = buildRideMap(mapEl, false);
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  if (!await authorizeDriverActiveRide()) return;
+  document.querySelector(".request-inbox-card")?.setAttribute("hidden", "hidden");
+  syncRidePhaseFromStorage();
+  syncDriverName();
+  setDriverRideDetails();
+  syncTripTimerState();
+  updateTripHeaderMeta();
+  refreshDriverRideFromDb();
+  driverRideRefreshTimer = setInterval(refreshDriverRideFromDb, 7000);
+  seedDriverChat();
+  bindDriverRideActions();
+  initDriverRideMap();
+  initDriverRideLiveTracking();
+});
+
+async function authorizeDriverActiveRide() {
+  try {
+    const rideId = String(new URLSearchParams(window.location.search).get("rideId") || localStorage.getItem("wow_ride_db_id") || "").trim();
+    if (!rideId || !window.WowFirestore) throw new Error("A valid active ride is required.");
+    const { db, uid } = await window.WowFirestore.ready();
+    const snapshot = await db.collection("rides").doc(rideId).get();
+    if (!snapshot.exists) throw new Error("This ride no longer exists.");
+    const ride = snapshot.data() || {};
+    if (String(ride.assignedDriverId || "") !== String(uid || "")) throw new Error("This driver is not assigned to the requested ride.");
+    if (!["driver_assigned", "driver_arriving", "arrived", "started", "completed", "cancelled"].includes(String(ride.status || ""))) {
+      throw new Error("This ride is not ready for the active ride page.");
+    }
+    localStorage.setItem("wow_ride_db_id", rideId);
+    clearDriverRideVehicleCache();
+    localStorage.setItem("wow_ride_status", String(ride.status || "driver_assigned"));
+    if (ride.rideCode) localStorage.setItem("wow_ride_code", String(ride.rideCode));
+    if (ride.pickupName || ride.pickupAddress) localStorage.setItem("wow_ride_pickup", String(ride.pickupName || ride.pickupAddress));
+    if (ride.destinationName || ride.destinationAddress) localStorage.setItem("wow_ride_drop", String(ride.destinationName || ride.destinationAddress));
+    if (ride.passengerName) localStorage.setItem("wow_ride_passenger", String(ride.passengerName));
+    if (ride.passengerPhone) localStorage.setItem("wow_ride_passenger_phone", String(ride.passengerPhone));
+    cacheDriverRideVehicle(ride);
+    if (ride.finalFare || ride.passengerOffer) localStorage.setItem("wow_ride_fare", String(ride.finalFare || ride.passengerOffer));
+    if (ride.pickupLatitude != null) localStorage.setItem("wow_ride_pickup_lat", String(ride.pickupLatitude));
+    if (ride.pickupLongitude != null) localStorage.setItem("wow_ride_pickup_lng", String(ride.pickupLongitude));
+    if (ride.destinationLatitude != null) localStorage.setItem("wow_ride_drop_lat", String(ride.destinationLatitude));
+    if (ride.destinationLongitude != null) localStorage.setItem("wow_ride_drop_lng", String(ride.destinationLongitude));
+    return true;
+  } catch (error) {
+    console.error("[WOW Driver Ride] authorization failed", error);
+    showRideInfoModal("Ride Unavailable", error?.message || "Unable to open this ride.");
+    window.setTimeout(() => window.location.replace("driver-dashboard.html"), 1800);
+    return false;
+  }
+}
+
+window.addEventListener("pagehide", cleanupDriverRidePage);
+window.addEventListener("beforeunload", cleanupDriverRidePage);
+
+function cleanupDriverRidePage() {
+  if (driverRideRefreshTimer) clearInterval(driverRideRefreshTimer);
+  if (pendingRideUnsubscribe) pendingRideUnsubscribe();
+  if (driverOfferUnsubscribe) driverOfferUnsubscribe();
+  stopRideChatPolling();
+  stopTripTimer();
+  stopDriverLocationTracking();
+  if (driverRideLiveTracker) {
+    driverRideLiveTracker.stop();
+    driverRideLiveTracker = null;
+  }
+}
+
+async function initDriverFirestoreRequests() {
+  const stateEl = document.getElementById("driverRequestState");
+  try {
+    if (!window.WowFirestore) throw new Error("Firestore helper missing");
+    const { db, uid } = await window.WowFirestore.ready();
+    if (stateEl) stateEl.textContent = "Live";
+    if (pendingRideUnsubscribe) pendingRideUnsubscribe();
+    if (driverOfferUnsubscribe) driverOfferUnsubscribe();
+    pendingRideUnsubscribe = db.collection("rides")
+      .where("requestStatus", "==", "open")
+      .limit(30)
+      .onSnapshot((snapshot) => {
+        driverRequestDocs.clear();
+        snapshot.forEach((doc) => {
+          driverRequestDocs.set(doc.id, { id: doc.id, ...doc.data() });
+        });
+        renderDriverRequestCards();
+      }, () => {
+        if (stateEl) stateEl.textContent = "Offline";
+        renderDriverRequestError("Unable to load ride requests.");
+      });
+
+    driverOfferUnsubscribe = db.collectionGroup("driverOffers")
+      .where("driverId", "==", uid)
+      .limit(50)
+      .onSnapshot((snapshot) => {
+        driverOfferStatusByRide.clear();
+        snapshot.forEach((doc) => {
+          const data = doc.data() || {};
+          if (data.rideId) driverOfferStatusByRide.set(String(data.rideId), { id: doc.id, ...data });
+        });
+        snapshot.docChanges().forEach((change) => handleDriverOfferChange(change.doc));
+        renderDriverRequestCards();
+      });
+  } catch {
+    if (stateEl) stateEl.textContent = "Offline";
+    renderDriverRequestError("Firebase connection unavailable. Please login again if requests do not appear.");
+  }
+}
+
+async function verifyAcceptedDriverAccess() {
+  try {
+    if (!window.WowFirestore) return;
+    const rideId = String(localStorage.getItem("wow_ride_db_id") || "").trim();
+    const rideCode = String(localStorage.getItem("wow_ride_code") || "").trim();
+    if (!rideId && !rideCode) return;
+    const { db, uid } = await window.WowFirestore.ready();
+    let snap = rideId ? await db.collection("rides").doc(rideId).get() : null;
+    if ((!snap || !snap.exists) && rideCode) {
+      const query = await db.collection("rides").where("rideCode", "==", rideCode).limit(1).get();
+      query.forEach((doc) => { snap = doc; });
+    }
+    if (!snap || !snap.exists) return;
+    const ride = snap.data() || {};
+    const acceptedDriverId = String(ride.acceptedDriverId || ride.driverUid || ride.driverId || "");
+    if (acceptedDriverId && acceptedDriverId !== String(uid)) {
+      showRideInfoModal("Ride Unavailable", "This ride has already been accepted by another driver.");
+      window.setTimeout(() => {
+        window.location.href = "driver-dashboard.html";
+      }, 1600);
+    }
+  } catch {
+    // Keep existing ride page behavior if Firestore is unavailable.
+  }
+}
+
+function renderDriverRequestError(message) {
+  const list = document.getElementById("driverRequestList");
+  if (list) list.innerHTML = `<div class="request-empty">${escapeHtml(message)}</div>`;
+}
+
+function renderDriverRequestCards() {
+  const list = document.getElementById("driverRequestList");
+  if (!list) return;
+  const rides = Array.from(driverRequestDocs.values())
+    .filter((ride) => String(ride.status || "").toLowerCase() === "searching" && String(ride.requestStatus || "").toLowerCase() === "open" && !ride.assignedDriverId)
+    .sort((a, b) => firestoreMillis(b.createdAt) - firestoreMillis(a.createdAt));
+
+  const visible = rides.filter((ride) => {
+    const offer = driverOfferStatusByRide.get(String(ride.id));
+    if (!offer) return true;
+    return String(offer.status || "").toLowerCase() !== "driver_declined";
+  });
+
+  if (!visible.length) {
+    list.innerHTML = '<div class="request-empty">No pending passenger requests right now.</div>';
+    return;
+  }
+
+  list.innerHTML = "";
+  visible.forEach((ride) => list.appendChild(buildDriverRequestCard(ride)));
+}
+
+async function handleDriverOfferChange(doc) {
+  const offer = doc.data() || {};
+  const status = String(offer.status || "").toLowerCase();
+  if (!["passenger_accepted", "passenger_rejected", "expired"].includes(status)) return;
+  const key = `${doc.ref.path}:${status}`;
+  if (driverOfferNotifications.has(key)) return;
+  driverOfferNotifications.add(key);
+  if (status === "passenger_rejected") {
+    showRideInfoModal("Offer Rejected", "Passenger rejected your offer. You can continue receiving other requests.");
+    return;
+  }
+  if (status === "expired") {
+    showRideInfoModal("Offer Expired", "Passenger did not respond within 30 seconds.");
+    return;
+  }
+  if (status === "passenger_accepted") {
+    const rideRef = doc.ref.parent.parent;
+    if (!rideRef) return;
+    const rideSnap = await rideRef.get();
+    if (!rideSnap.exists) return;
+    const ride = { id: rideSnap.id, ...rideSnap.data() };
+    applyAcceptedFirestoreRide(ride, offer);
+    showRideInfoModal("Passenger Accepted", "Passenger accepted your offer. Ride details are ready.");
+  }
+}
+
+function applyAcceptedFirestoreRide(ride, offer) {
+  const fare = Number(offer.driverOfferPrice || offer.offerPrice || ride.fare || ride.passengerOfferPrice || 0);
+  localStorage.setItem("wow_ride_pickup", ride.pickupLocation || ride.pickup || "");
+  localStorage.setItem("wow_ride_drop", ride.dropoffLocation || ride.dropoff || "");
+  localStorage.setItem("wow_ride_fare", String(fare));
+  localStorage.setItem("wow_ride_payment_method", ride.paymentMethod || "cash");
+  localStorage.setItem("wow_ride_payment_label", ride.paymentLabel || ride.paymentMethod || "Cash");
+  localStorage.setItem("wow_ride_vehicle", normalizeRideType(ride.vehicleType || offer.vehicleType || ""));
+  localStorage.setItem("wow_ride_driver_name", offer.driverName || localStorage.getItem("wow_user_name") || "Driver");
+  localStorage.setItem("wow_ride_driver_phone", offer.driverPhone || localStorage.getItem("wow_user_phone") || "");
+  localStorage.setItem("wow_ride_passenger", ride.passengerName || "Passenger");
+  localStorage.setItem("wow_ride_passenger_phone", ride.passengerPhone || "");
+  localStorage.setItem("wow_ride_code", ride.rideCode || "");
+  localStorage.setItem("wow_ride_db_id", ride.id || "");
+  localStorage.setItem("wow_ride_status", "accepted");
+  if (ride.pickupLat) localStorage.setItem("wow_ride_pickup_lat", String(ride.pickupLat));
+  if (ride.pickupLng) localStorage.setItem("wow_ride_pickup_lng", String(ride.pickupLng));
+  if (ride.dropLat || ride.dropoffLat) localStorage.setItem("wow_ride_drop_lat", String(ride.dropLat || ride.dropoffLat));
+  if (ride.dropLng || ride.dropoffLng) localStorage.setItem("wow_ride_drop_lng", String(ride.dropLng || ride.dropoffLng));
+  if (ride.distance || ride.distanceKm) localStorage.setItem("wow_ride_distance_km", String(ride.distance || ride.distanceKm));
+  if (ride.durationMin) localStorage.setItem("wow_ride_duration_min", String(ride.durationMin));
+  setDriverRideDetails();
+  updateRideActionState();
+}
+
+function buildDriverRequestCard(ride) {
+  const card = document.createElement("article");
+  card.className = "driver-request-card";
+  card.dataset.rideId = ride.id;
+  const passengerOffer = Number(ride.passengerOfferPrice || ride.offeredFare || ride.offerPrice || ride.fare || 0);
+  const distance = Number(ride.distance || ride.distanceKm || 0);
+  const payment = ride.paymentLabel || ride.paymentMethod || "Cash";
+  const vehicle = normalizeRideType(ride.vehicleType || ride.rideType || "WOW Car");
+  const passengerName = ride.passengerName || "Passenger";
+  const pickup = ride.pickupLocation || ride.pickup || "Pickup";
+  const dropoff = ride.dropoffLocation || ride.dropoff || "Drop-off";
+  card.innerHTML = `
+    <div class="request-card-top">
+      <div>
+        <strong>${escapeHtml(passengerName)}</strong>
+        <span>${escapeHtml(vehicle)} · ${distance > 0 ? distance.toFixed(1) + " km" : "-- km"}</span>
+      </div>
+      <div class="request-price">Rs. ${Math.round(passengerOffer).toLocaleString("en-PK")}</div>
+    </div>
+    <div class="request-route">
+      <div><span class="dot pickup-dot"></span><p>${escapeHtml(pickup)}</p></div>
+      <div><span class="dot drop-dot"></span><p>${escapeHtml(dropoff)}</p></div>
+    </div>
+    <div class="request-meta-grid">
+      <span>Payment <strong>${escapeHtml(payment)}</strong></span>
+      <span>Phone <strong>${escapeHtml(ride.passengerPhone || "--")}</strong></span>
+    </div>
+    <div class="request-actions">
+      <button class="primary-btn" type="button" data-action="accept">Accept Ride</button>
+      <button class="outline-btn danger-text" type="button" data-action="decline">Decline</button>
+    </div>
+    <div class="request-note" aria-live="polite"></div>
+  `;
+  card.querySelector('[data-action="accept"]').addEventListener("click", () => acceptDriverRideRequest(card, ride));
+  card.querySelector('[data-action="decline"]').addEventListener("click", () => declineDriverRequest(card, ride));
+  return card;
+}
+
+async function acceptDriverRideRequest(card, ride) {
+  const note = card.querySelector(".request-note");
+  setRequestCardBusy(card, true);
+  try {
+    const { db, uid, FieldValue } = await window.WowFirestore.ready();
+    const rideRef = db.collection("rides").doc(ride.id);
+    const driverRef = db.collection("drivers").doc(uid);
+    const driverName = localStorage.getItem("wow_user_name") || "Driver";
+    const driverPhone = localStorage.getItem("wow_user_phone") || "";
+    let acceptedRide = null;
+    await db.runTransaction(async (transaction) => {
+      const snap = await transaction.get(rideRef);
+      const driverSnap = await transaction.get(driverRef);
+      if (!snap.exists) throw new Error("ride_not_found");
+      const current = snap.data() || {};
+      if (String(current.status || "").toLowerCase() !== "pending") throw new Error("already_accepted");
+      const driver = driverSnap.exists ? (driverSnap.data() || {}) : {};
+      const driverVehicle = localStorage.getItem("wow_driver_vehicle") || String(driver.vehicleModel || driver.vehicle || "");
+      const vehicleNumber = localStorage.getItem("wow_driver_plate") || String(driver.vehicleNumber || "");
+      const driverPhoto = localStorage.getItem("wow_driver_profile_photo") || String(driver.profilePhotoUrl || driver.profileImage || "");
+      const fare = Number(current.offeredFare || current.passengerOfferPrice || current.fare || 0);
+      const vehicleType = normalizeRideType(current.vehicleType || current.rideType || driver.vehicleType || "");
+      transaction.set(rideRef, {
+        status: "accepted",
+        acceptedDriverId: uid,
+        acceptedDriverName: driverName,
+        acceptedDriverPhone: driverPhone,
+        acceptedDriverVehicle: vehicleType,
+        driverId: uid,
+        driverID: uid,
+        driverUid: uid,
+        selectedDriverId: uid,
+        driverName,
+        driverPhone,
+        driverProfilePhoto: driverPhoto,
+        profilePhotoUrl: driverPhoto,
+        fare,
+        offeredFare: fare,
+        vehicleInfo: {
+          type: vehicleType,
+          number: vehicleNumber,
+          model: driverVehicle,
+          color: String(driver.vehicleColor || "")
+        },
+        acceptedAt: FieldValue.serverTimestamp(),
+        acceptedTime: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+      acceptedRide = {
+        id: ride.id,
+        ...current,
+        status: "accepted",
+        driverName,
+        driverPhone,
+        driverUid: uid,
+        vehicleInfo: { type: vehicleType, number: vehicleNumber, model: driverVehicle }
+      };
+    });
+    applyAcceptedFirestoreRide(acceptedRide || { id: ride.id, ...ride }, {
+      driverName,
+      driverPhone,
+      driverVehicle: normalizeRideType(ride.vehicleType || ""),
+      offerPrice: Number(ride.offeredFare || ride.fare || 0)
+    });
+    if (note) note.textContent = "Ride accepted successfully.";
+    showRideInfoModal("Ride accepted successfully.", "Open trip controls to start the ride when the passenger is onboard.");
+    renderDriverRequestCards();
+  } catch (error) {
+    if (String(error?.message || "").includes("already_accepted")) {
+      driverRequestDocs.delete(String(ride.id));
+      renderDriverRequestCards();
+      showRideInfoModal("Ride Unavailable", "This ride has already been accepted by another driver.");
+    } else if (note) {
+      note.textContent = "Unable to accept. Please try again.";
+      setRequestCardBusy(card, false);
+    }
+  }
+}
+
+async function declineDriverRequest(card, ride) {
+  setRequestCardBusy(card, true);
+  try {
+    const { db, uid, FieldValue } = await window.WowFirestore.ready();
+    await db.collection("rides").doc(ride.id).collection("driverOffers").doc(uid).set({
+      rideId: ride.id,
+      rideCode: ride.rideCode || "",
+      driverId: uid,
+      driverName: localStorage.getItem("wow_user_name") || "Driver",
+      responseType: "declined",
+      status: "driver_declined",
+      respondedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    card.remove();
+  } catch {
+    const note = card.querySelector(".request-note");
+    if (note) note.textContent = "Unable to decline right now.";
+    setRequestCardBusy(card, false);
+  }
+}
+
+function setRequestCardBusy(card, busy) {
+  card.querySelectorAll("button, input").forEach((el) => {
+    el.disabled = busy;
+  });
+}
+
+function firestoreMillis(value) {
+  if (!value) return 0;
+  if (typeof value.toMillis === "function") return value.toMillis();
+  if (value.seconds) return Number(value.seconds) * 1000;
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function normalizeRideType(type) {
+  const text = String(type || "").toLowerCase();
+  if (text.includes("bike")) return "WOW Bike";
+  if (text.includes("scooty")) return "WOW Scooty";
+  return "WOW Car";
+}
+
+function buildRideMap(element, isFull) {
+  ridePickup = localStorage.getItem("wow_ride_pickup") || "Gulshan Block 13, Karachi";
+  rideDrop = localStorage.getItem("wow_ride_drop") || "DHA Phase 6, Karachi";
+  const pickupPoint = readSavedLatLng("pickup") || pointFromText(ridePickup, { lat: 24.9207, lng: 67.0903 });
+  const dropPoint = readSavedLatLng("drop") || pointFromText(rideDrop, { lat: 24.8146, lng: 67.0438 });
+  if (!rideDriverAnchor) rideDriverAnchor = readSavedLatLng("driver");
+  const origin = ridePhase === "toDrop" ? pickupPoint : (rideDriverAnchor || pickupPoint);
+  const destination = ridePhase === "toDrop" ? dropPoint : pickupPoint;
+
+  const map = WowMapbox.createMap(element, { center: WowMapbox.center, zoom: 12 });
+  if (!map) return null;
+  drawDriverRideRoute(map, isFull, origin, destination, pickupPoint, dropPoint);
+  return map;
+}
+
+function createMarker(map, position, color, label) {
+  const isPickup = label === "P";
+  const markers = driverStaticMarkersByMap.get(map) || { pickup: null, drop: null };
+  const marker = isPickup ? markers.pickup : markers.drop;
+  if (marker) {
+    WowMapbox.setMarkerPoint(marker, position);
+    return marker;
+  }
+  const created = WowMapbox.createLabelMarker(map, position, color, label);
+  if (isPickup) markers.pickup = created;
+  else markers.drop = created;
+  driverStaticMarkersByMap.set(map, markers);
+  return created;
+}
+
+async function drawDriverRideRoute(map, isFull, origin, destination, pickupPoint, dropPoint) {
+  if (!isFull) {
+    WowMapbox.clearRoute(map, "driver-ride-route");
+    createMarker(map, pickupPoint, "#25c38b", "P");
+    createMarker(map, dropPoint, "#f06aa5", "D");
+    fitDriverBounds(map, origin, pickupPoint, dropPoint);
+    startRideTracking(map);
+    return;
+  }
+  try {
+    const route = await WowMapbox.directions(origin, destination);
+    WowMapbox.drawRoute(map, isFull ? "driver-ride-route-full" : "driver-ride-route", route.coordinates, "#1a73e8", 4);
+    createMarker(map, pickupPoint, "#25c38b", "P");
+    createMarker(map, dropPoint, "#f06aa5", "D");
+    rideTotalDistance = route.distanceMeters;
+    rideTotalDuration = route.durationSeconds;
+    ridePath = route.path;
+    rideStep = 0;
+    fitDriverBounds(map, origin, pickupPoint, dropPoint);
+    if (!isFull) startRideTracking(map);
+  } catch (error) {
+    ridePath = [];
+    rideTotalDistance = 0;
+    rideTotalDuration = 0;
+    createMarker(map, pickupPoint, "#25c38b", "P");
+    createMarker(map, dropPoint, "#f06aa5", "D");
+    WowMapbox.clearRoute(map, isFull ? "driver-ride-route-full" : "driver-ride-route");
+    fitDriverBounds(map, origin, pickupPoint, dropPoint);
+    console.error("[WOW Driver Ride] route failed", error);
+    setDriverTrackingText("driverDistance", "Route temporarily unavailable");
+    if (!isFull) startRideTracking(map);
+  }
+}
+
+function bindDriverRideActions() {
+  const chatBtn = document.getElementById("driverRideChat");
+  const callBtn = document.getElementById("driverRideCall");
+  const helpBtn = document.getElementById("driverRideHelp");
+  const cancelBtn = document.getElementById("driverCancelRide");
+  const keepRideBtn = document.getElementById("keepRideBtn");
+  const confirmCancelBtn = document.getElementById("confirmCancelBtn");
+  const startRideBtn = document.getElementById("driverStartRide");
+  const completeRideBtn = document.getElementById("driverCompleteRide");
+  const cancelCompleteBtn = document.getElementById("cancelCompleteBtn");
+  const confirmCompleteBtn = document.getElementById("confirmCompleteBtn");
+  const closeCompleteSuccessBtn = document.getElementById("closeCompleteSuccessBtn");
+  const rideInfoOkBtn = document.getElementById("rideInfoOkBtn");
+  const closeStartBtn = document.getElementById("closeStartBtn");
+  const viewMapBtn = document.getElementById("driverViewMap");
+  const openNavBtn = document.getElementById("driverOpenNav");
+  const closeMapBtn = document.getElementById("closeMap");
+  const sosBtn = document.getElementById("driverRideSosBtn");
+
+  if (chatBtn) chatBtn.addEventListener("click", () => {
+    if (!hasMatchedRideContext()) return showRideInfoModal("Chat unavailable", "This ride is not active.");
+    toggleChatPanel(true);
+  });
+  if (helpBtn) helpBtn.addEventListener("click", () => location.href = "driver-help.html");
+  if (callBtn) callBtn.addEventListener("click", () => {
+    if (!hasMatchedRideContext()) return showRideInfoModal("Call unavailable", "This ride is not active.");
+    const passengerPhone = String(localStorage.getItem("wow_ride_passenger_phone") || "").trim();
+    if (!passengerPhone) return showRideInfoModal("Call unavailable", "Passenger phone number is not available for this ride.");
+    toggleCallPanel(true);
+    window.location.href = `tel:${passengerPhone.replace(/[^\d+]/g, "")}`;
+  });
+
+  if (cancelBtn) cancelBtn.addEventListener("click", () => toggleCancelModal(true));
+  if (keepRideBtn) keepRideBtn.addEventListener("click", () => toggleCancelModal(false));
+  if (confirmCancelBtn) {
+    confirmCancelBtn.addEventListener("click", cancelDriverRide);
+  }
+
+  if (startRideBtn) startRideBtn.addEventListener("click", markArrivedAtPickup);
+  if (completeRideBtn) completeRideBtn.addEventListener("click", completeRide);
+  if (cancelCompleteBtn) cancelCompleteBtn.addEventListener("click", () => toggleCompleteConfirmModal(false));
+  if (confirmCompleteBtn) confirmCompleteBtn.addEventListener("click", executeCompleteRide);
+  if (closeCompleteSuccessBtn) closeCompleteSuccessBtn.addEventListener("click", closeCompleteSuccessAndExit);
+  if (rideInfoOkBtn) rideInfoOkBtn.addEventListener("click", () => toggleRideInfoModal(false));
+  if (closeStartBtn) closeStartBtn.addEventListener("click", () => toggleStartModal(false));
+
+  if (viewMapBtn) viewMapBtn.addEventListener("click", openMapModal);
+  if (openNavBtn) openNavBtn.addEventListener("click", openExternalNavigation);
+  if (closeMapBtn) closeMapBtn.addEventListener("click", closeMapModal);
+  if (sosBtn) sosBtn.addEventListener("click", sendDriverSosAlert);
+
+  document.getElementById("cancelOverlay").addEventListener("click", () => toggleCancelModal(false));
+  document.getElementById("startOverlay").addEventListener("click", () => toggleStartModal(false));
+  document.getElementById("completeConfirmOverlay").addEventListener("click", () => toggleCompleteConfirmModal(false));
+  document.getElementById("completeSuccessOverlay").addEventListener("click", closeCompleteSuccessAndExit);
+  document.getElementById("rideInfoOverlay").addEventListener("click", () => toggleRideInfoModal(false));
+  document.getElementById("mapOverlay").addEventListener("click", closeMapModal);
+  document.getElementById("closeChat").addEventListener("click", () => toggleChatPanel(false));
+  document.getElementById("chatOverlay").addEventListener("click", () => toggleChatPanel(false));
+  document.getElementById("closeCall").addEventListener("click", () => toggleCallPanel(false));
+  document.getElementById("callOverlay").addEventListener("click", () => toggleCallPanel(false));
+  document.getElementById("endCallBtn").addEventListener("click", () => toggleCallPanel(false));
+
+  document.getElementById("sendChat").addEventListener("click", sendChatMessage);
+  document.getElementById("chatInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") sendChatMessage();
+  });
+  document.querySelectorAll(".quick-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const input = document.getElementById("chatInput");
+      input.value = btn.textContent;
+      sendChatMessage();
+    });
+  });
+  const emojiBtn = document.getElementById("emojiBtn");
+  if (emojiBtn) {
+    emojiBtn.addEventListener("click", () => {
+      const input = document.getElementById("chatInput");
+      input.value = `${input.value} :)`.trim();
+      input.focus();
+    });
+  }
+
+  updateRideActionState();
+}
+
+async function cancelDriverRide() {
+  const btn = document.getElementById("confirmCancelBtn");
+  const rideCode = localStorage.getItem("wow_ride_code") || "";
+  const rideId = String(localStorage.getItem("wow_ride_db_id") || "").trim();
+  if (!rideId || !window.WowFirestore) {
+    toggleCancelModal(false);
+    return;
+  }
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Cancelling...";
+  }
+  try {
+    const { db, uid, FieldValue } = await window.WowFirestore.ready();
+    const rideRef = db.collection("rides").doc(rideId);
+    await db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(rideRef);
+      if (!snapshot.exists) throw new Error("Ride no longer exists.");
+      const ride = snapshot.data() || {};
+      if (String(ride.assignedDriverId || "") !== String(uid || "")) throw new Error("Only the assigned driver can cancel this ride.");
+      if (["completed", "cancelled"].includes(String(ride.status || ""))) throw new Error("This ride is already closed.");
+      transaction.update(rideRef, {
+        status: "cancelled",
+        requestStatus: "cancelled",
+        cancelledBy: "driver",
+        cancelledAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
+      });
+    });
+    localStorage.setItem("wow_ride_status", "cancelled");
+    localStorage.removeItem("wow_ride_started");
+    localStorage.removeItem("wow_ride_started_at");
+    markLiveRequestStatus(rideCode, "cancelled");
+    stopTripTimer();
+    stopDriverLocationTracking();
+    if (window.WowRealtime && typeof window.WowRealtime.publish === "function") {
+      window.WowRealtime.publish("ride.status", {
+        rideCode,
+        status: "cancelled"
+      });
+    }
+    toggleCancelModal(false);
+    window.location.href = "driver-dashboard.html";
+    return;
+  } catch (error) {
+    console.error("[WOW Driver Ride] cancellation failed", error);
+    showRideInfoModal("Unable to Cancel", error?.message || "Please try again.");
+  }
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = "Yes, Cancel";
+  }
+}
+
+function syncRidePhaseFromStorage() {
+  const status = String(localStorage.getItem("wow_ride_status") || "").toLowerCase();
+  let started = isRideStartedStatus(status);
+  if (!started && localStorage.getItem("wow_ride_started") === "1") {
+    started = isRideInProgressFromLiveRequests();
+    if (!started) localStorage.removeItem("wow_ride_started");
+  }
+  if (!started) {
+    started = isRideInProgressFromLiveRequests();
+    if (started) {
+      localStorage.setItem("wow_ride_started", "1");
+    }
+  }
+  ridePhase = started ? "toDrop" : "toPickup";
+}
+
+function isRideInProgressFromLiveRequests() {
+  const rideCode = localStorage.getItem("wow_ride_code") || "";
+  if (!rideCode) return false;
+  try {
+    const rows = JSON.parse(localStorage.getItem("wow_live_ride_requests") || "[]");
+    if (!Array.isArray(rows)) return false;
+    const row = rows.find((item) => String(item.rideCode || "") === String(rideCode));
+    if (!row) return false;
+    const status = String(row.status || "").toLowerCase();
+    return isRideStartedStatus(status);
+  } catch {
+    return false;
+  }
+}
+
+function updateRideActionState() {
+  const startRideBtn = document.getElementById("driverStartRide");
+  const completeRideBtn = document.getElementById("driverCompleteRide");
+  const navigateBtn = document.getElementById("driverOpenNav");
+  const status = String(localStorage.getItem("wow_ride_status") || "accepted").toLowerCase();
+  const started = isRideStartedStatus(status);
+  const canComplete = hasActiveRideContext();
+  if (startRideBtn) {
+    startRideBtn.disabled = started;
+    startRideBtn.textContent = status === "arrived" ? "Start Ride" : "Mark Arrived";
+    startRideBtn.hidden = started || status === "completed" || status === "cancelled";
+  }
+  if (completeRideBtn) {
+    completeRideBtn.disabled = !canComplete || !started;
+    completeRideBtn.hidden = !started || status === "completed" || status === "cancelled";
+  }
+  if (navigateBtn) navigateBtn.hidden = started || status === "completed" || status === "cancelled";
+  const statusEl = document.getElementById("driverRideStatus");
+  if (statusEl) {
+    if (started) statusEl.textContent = "Trip Started / On Trip";
+    else if (status === "arrived") statusEl.textContent = "Driver arrived";
+    else if (isDriverArrivingStatus(status)) statusEl.textContent = "Driver is on the way";
+    else if (status === "completed") statusEl.textContent = "Trip completed";
+    else statusEl.textContent = "Trip accepted";
+  }
+  syncTripTimerState();
+  updateTripHeaderMeta();
+}
+
+async function markArrivedAtPickup() {
+  const rideId = String(localStorage.getItem("wow_ride_db_id") || "").trim();
+  if (!rideId || !window.WowLiveTracking) return;
+  if (driverStartPending) return;
+  driverStartPending = true;
+  const startRideBtn = document.getElementById("driverStartRide");
+  if (startRideBtn) {
+    startRideBtn.disabled = true;
+    startRideBtn.textContent = "Updating...";
+  }
+  try {
+    const status = String(localStorage.getItem("wow_ride_status") || "").toLowerCase();
+    if (status === "arrived") {
+      await WowLiveTracking.startRide(rideId);
+      localStorage.setItem("wow_ride_status", "started");
+      localStorage.setItem("wow_ride_started", "1");
+      localStorage.setItem("wow_ride_started_at", String(Date.now()));
+      ridePhase = "toDrop";
+    } else {
+      await WowLiveTracking.arriveRide(rideId);
+      localStorage.setItem("wow_ride_status", "arrived");
+      localStorage.removeItem("wow_ride_started");
+      localStorage.removeItem("wow_ride_started_at");
+      ridePhase = "toPickup";
+    }
+    updateRideActionState();
+    setDriverRideDetails();
+    driverStartPending = false;
+    return;
+  } catch (error) {
+    showRideInfoModal("Unable to Start", error?.message || "Please try again.");
+  }
+  if (startRideBtn) {
+    startRideBtn.disabled = false;
+    startRideBtn.textContent = String(localStorage.getItem("wow_ride_status") || "") === "arrived" ? "Start Ride" : "Mark Arrived";
+  }
+  driverStartPending = false;
+}
+
+async function completeRide() {
+  if (!hasActiveRideContext()) {
+    showRideInfoModal("No Active Ride", "No active ride found. Please accept and start a ride first.");
+    updateRideActionState();
+    return;
+  }
+  const passengerEl = document.getElementById("completePassengerName");
+  const fareEl = document.getElementById("completeFareAmount");
+  if (passengerEl) {
+    passengerEl.textContent = localStorage.getItem("wow_ride_passenger") || "Passenger";
+  }
+  if (fareEl) {
+    fareEl.textContent = `Rs. ${Number(localStorage.getItem("wow_ride_fare") || 0)}`;
+  }
+  toggleCompleteConfirmModal(true);
+}
+
+async function executeCompleteRide() {
+  if (driverCompletePending) return;
+  driverCompletePending = true;
+  const completeRideBtn = document.getElementById("driverCompleteRide");
+  const confirmCompleteBtn = document.getElementById("confirmCompleteBtn");
+  toggleCompleteConfirmModal(false);
+  if (completeRideBtn) {
+    completeRideBtn.disabled = true;
+    completeRideBtn.textContent = "Completing...";
+  }
+  if (confirmCompleteBtn) {
+    confirmCompleteBtn.disabled = true;
+    confirmCompleteBtn.textContent = "Completing...";
+  }
+
+  const rideCode = localStorage.getItem("wow_ride_code") || "";
+
+  const fare = Number(localStorage.getItem("wow_ride_fare") || 0);
+  const payload = {
+    pickup: localStorage.getItem("wow_ride_pickup") || "",
+    drop: localStorage.getItem("wow_ride_drop") || "",
+    pickup_lat: localStorage.getItem("wow_ride_pickup_lat") || "",
+    pickup_lng: localStorage.getItem("wow_ride_pickup_lng") || "",
+    drop_lat: localStorage.getItem("wow_ride_drop_lat") || "",
+    drop_lng: localStorage.getItem("wow_ride_drop_lng") || "",
+    distance_km: Number(localStorage.getItem("wow_ride_distance_km") || 0),
+    duration_min: Number(localStorage.getItem("wow_ride_duration_min") || 0),
+    vehicle_type: localStorage.getItem("wow_ride_requested_vehicle") || "",
+    traffic_level: localStorage.getItem("wow_ride_traffic_level") || "medium",
+    time_of_day: localStorage.getItem("wow_ride_time_of_day") || "day",
+    fare,
+    user_id: Number(localStorage.getItem("wow_user_id") || 0),
+    email: localStorage.getItem("wow_user_email") || "",
+    role: (localStorage.getItem("wow_user_role") || "driver").toLowerCase()
+  };
+
+  try {
+    await fetch(FARE_API.saveData, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  } catch {
+    // Keep completion flow non-blocking if API fails temporarily.
+  }
+
+  let completedSynced = false;
+  try {
+    const rideId = String(localStorage.getItem("wow_ride_db_id") || "").trim();
+    await WowLiveTracking.completeRide(rideId);
+    completedSynced = true;
+  } catch (error) {
+    console.error("[WOW Driver Ride] Firestore completion failed", error);
+  }
+  try {
+    const res = await fetch(RIDE_API.updateStatus, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...payload,
+        ride_code: rideCode,
+        status: "completed"
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+    void data;
+  } catch {
+    // Keep completion flow non-blocking if sync fails.
+  }
+
+  if (!completedSynced) {
+    showRideInfoModal("Completion Failed", "Ride cannot be completed yet. Ensure the passenger has started the ride and try again.");
+    if (completeRideBtn) {
+      completeRideBtn.disabled = false;
+      completeRideBtn.textContent = "End Trip";
+    }
+    if (confirmCompleteBtn) {
+      confirmCompleteBtn.disabled = false;
+      confirmCompleteBtn.textContent = "Confirm";
+    }
+    driverCompletePending = false;
+    return;
+  }
+
+  markLiveRequestCompleted(rideCode);
+  localStorage.setItem("wow_ride_status", "completed");
+  localStorage.removeItem("wow_ride_started");
+  localStorage.removeItem("wow_ride_started_at");
+  ridePhase = "toPickup";
+  stopTripTimer();
+  stopDriverLocationTracking();
+  showRideCompleteSuccess();
+  if (confirmCompleteBtn) {
+    confirmCompleteBtn.disabled = false;
+    confirmCompleteBtn.textContent = "Confirm";
+  }
+  driverCompletePending = false;
+}
+
+function markLiveRequestStatus(rideCode, status) {
+  if (!rideCode) return;
+  const key = "wow_live_ride_requests";
+  try {
+    const rows = JSON.parse(localStorage.getItem(key) || "[]");
+    if (!Array.isArray(rows)) return;
+    const idx = rows.findIndex((row) => String(row.rideCode || "") === String(rideCode));
+    if (idx >= 0) {
+      rows[idx] = {
+        ...rows[idx],
+        status,
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem(key, JSON.stringify(rows));
+    }
+  } catch {
+    // Ignore storage parse errors.
+  }
+}
+
+function markLiveRequestCompleted(rideCode) {
+  if (!rideCode) return;
+  const key = "wow_live_ride_requests";
+  try {
+    const rows = JSON.parse(localStorage.getItem(key) || "[]");
+    if (!Array.isArray(rows)) return;
+    const idx = rows.findIndex((row) => String(row.rideCode || "") === String(rideCode));
+    if (idx >= 0) {
+      rows[idx] = {
+        ...rows[idx],
+        status: "completed",
+        completedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem(key, JSON.stringify(rows));
+    }
+  } catch {
+    // Ignore storage parse errors.
+  }
+}
+
+async function sendDriverSosAlert() {
+  const pickup = localStorage.getItem("wow_ride_pickup") || "";
+  const drop = localStorage.getItem("wow_ride_drop") || "";
+  const rideId = localStorage.getItem("wow_ride_code") || "WOW-RIDE";
+  if (!hasActiveRideContext()) {
+    alert("SOS is available during active ride only.");
+    return;
+  }
+  const location = await currentLocationText();
+  const payload = {
+    ...currentUserPayload(),
+    role: "driver",
+    ride_id: rideId,
+    pickup,
+    drop,
+    location
+  };
+  try {
+    await createDriverFirestoreSos(location);
+    fetch(SOS_API.send, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).catch((error) => console.warn("[WOW Driver SOS] legacy sync skipped", error));
+    alert("Alert Sent Successfully");
+  } catch (error) {
+    console.error("[WOW Driver SOS] Firestore alert failed", error);
+    alert(error?.message || "Unable to send SOS right now.");
+  }
+}
+
+async function createDriverFirestoreSos(locationText) {
+  if (!window.WowFirestore) throw new Error("Firebase is unavailable.");
+  const { db, uid, FieldValue } = await window.WowFirestore.ready();
+  const rideId = String(localStorage.getItem("wow_ride_db_id") || "").trim();
+  if (!rideId || !uid) throw new Error("An authenticated active ride is required.");
+  const rideRef = db.collection("rides").doc(rideId);
+  const rideSnapshot = await rideRef.get();
+  if (!rideSnapshot.exists) throw new Error("The active ride could not be found.");
+  const ride = rideSnapshot.data() || {};
+  if (String(ride.assignedDriverId || "") !== String(uid)) {
+    throw new Error("Only the assigned driver can send this alert.");
+  }
+  if (!["driver_assigned", "driver_arriving", "arrived", "started"].includes(String(ride.status || "").toLowerCase())) {
+    throw new Error("SOS is available during an active assigned ride.");
+  }
+  const coordinates = String(locationText || "").match(/Lat\s+(-?\d+(?:\.\d+)?),\s*Lng\s+(-?\d+(?:\.\d+)?)/i);
+  const latitude = coordinates ? Number(coordinates[1]) : null;
+  const longitude = coordinates ? Number(coordinates[2]) : null;
+  const alertRef = db.collection("sosAlerts").doc();
+  const batch = db.batch();
+  batch.set(alertRef, {
+    alertId: alertRef.id,
+    reporterUid: uid,
+    reporterRole: "driver",
+    driverId: uid,
+    driverUid: uid,
+    driverName: ride.driverName || localStorage.getItem("wow_user_name") || "Driver",
+    driverPhone: ride.driverPhone || localStorage.getItem("wow_user_phone") || "",
+    passengerId: ride.passengerId || ride.passengerUid || "",
+    passengerUid: ride.passengerId || ride.passengerUid || "",
+    passengerName: ride.passengerName || localStorage.getItem("wow_ride_passenger") || "Passenger",
+    passengerPhone: ride.passengerPhone || localStorage.getItem("wow_ride_passenger_phone") || "",
+    rideId,
+    rideCode: ride.rideCode || localStorage.getItem("wow_ride_code") || rideId,
+    pickupAddress: ride.pickupAddress || ride.pickup || localStorage.getItem("wow_ride_pickup") || "",
+    dropoffAddress: ride.dropoffAddress || ride.dropoff || localStorage.getItem("wow_ride_drop") || "",
+    currentLatitude: latitude,
+    currentLongitude: longitude,
+    currentLocation: latitude == null || longitude == null ? null : { lat: latitude, lng: longitude },
+    location: String(locationText || "Location unavailable"),
+    rideStatus: ride.status || "",
+    status: "active",
+    priority: "critical",
+    severity: "sos",
+    source: "website_driver",
+    timestamp: FieldValue.serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  });
+  batch.set(rideRef, {
+    sosActive: true,
+    sosAlertId: alertRef.id,
+    safetyStatus: "sos",
+    activeEmergencyAlertId: alertRef.id,
+    sosTriggeredAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  }, { merge: true });
+  await batch.commit();
+}
+
+function hasActiveRideContext() {
+  const rideId = localStorage.getItem("wow_ride_code") || "";
+  const pickup = localStorage.getItem("wow_ride_pickup") || "";
+  const drop = localStorage.getItem("wow_ride_drop") || "";
+  const status = String(localStorage.getItem("wow_ride_status") || "").toLowerCase();
+  return Boolean(rideId && pickup && drop && ["driver_assigned", "driver_arriving", "arrived", "started"].includes(status));
+}
+
+function hasMatchedRideContext() {
+  const rideId = String(localStorage.getItem("wow_ride_db_id") || "").trim();
+  const status = String(localStorage.getItem("wow_ride_status") || "").toLowerCase();
+  return Boolean(rideId && !["completed", "cancelled"].includes(status));
+}
+
+function syncDriverName() {
+  const storedName = localStorage.getItem("wow_user_name") || "";
+  const storedEmail = localStorage.getItem("wow_user_email") || "";
+  const name = storedName || storedEmail.split("@")[0] || "Driver";
+  const driverNameEl = document.getElementById("driverRideName");
+  if (driverNameEl) driverNameEl.textContent = name;
+}
+
+function setDriverRideDetails() {
+  const pickup = localStorage.getItem("wow_ride_pickup") || "Gulshan Block 13, Karachi";
+  const drop = localStorage.getItem("wow_ride_drop") || "DHA Phase 6, Karachi";
+  const fare = localStorage.getItem("wow_ride_fare") || "380";
+  const fareNumber = Number(fare || 0);
+  const earningPreview = Math.max(0, Math.round(fareNumber * 0.8));
+  const paymentMethod = localStorage.getItem("wow_ride_payment_label") || (localStorage.getItem("wow_ride_payment_method") === "cash" ? "Cash" : "Online");
+  const passenger = localStorage.getItem("wow_ride_passenger") || "Passenger";
+  const passengerPhone = localStorage.getItem("wow_ride_passenger_phone") || "+92 312 *** 56";
+  const rideCode = localStorage.getItem("wow_ride_code") || "ABC-1234";
+  const status = String(localStorage.getItem("wow_ride_status") || "accepted").toLowerCase();
+  const avatar = passenger.trim().charAt(0).toUpperCase() || "P";
+
+  const pickupEl = document.getElementById("driverPickupText");
+  const dropEl = document.getElementById("driverDropText");
+  const fareEl = document.getElementById("driverFareText");
+  const paymentEl = document.getElementById("driverPaymentType");
+  const earningEl = document.getElementById("driverEarningText");
+  const wowCodeEl = document.getElementById("driverWowCode");
+  const passengerEl = document.getElementById("driverPassengerName");
+  const passengerPhoneEl = document.getElementById("driverPassengerPhone");
+  const rideCodeEl = document.getElementById("driverRideCode");
+  const avatarEl = document.getElementById("driverPassengerAvatar");
+  const chatPassengerEl = document.getElementById("chatPassengerName");
+  const chatRideCodeEl = document.getElementById("chatRideCodeLabel");
+  const chatPickupEl = document.getElementById("chatPickupText");
+  const chatDropEl = document.getElementById("chatDropText");
+  const chatRideStatusEl = document.getElementById("chatRideStatus");
+  const chatAvatarEl = document.getElementById("chatPassengerAvatar");
+  const subEl = document.querySelector(".driver-sub");
+  const requestedVehicleEl = document.getElementById("driverRequestedVehicle");
+  const assignedVehicleEl = document.getElementById("driverAssignedVehicle");
+
+  if (pickupEl) pickupEl.textContent = pickup;
+  if (dropEl) dropEl.textContent = drop;
+  if (fareEl) fareEl.textContent = `Rs. ${Number(fare || 0)}`;
+  if (earningEl) earningEl.textContent = `Rs. ${earningPreview}`;
+  if (paymentEl) paymentEl.textContent = paymentMethod;
+  if (wowCodeEl) wowCodeEl.textContent = rideCode;
+  if (passengerEl) passengerEl.textContent = passenger;
+  if (passengerPhoneEl) passengerPhoneEl.textContent = passengerPhone;
+  if (rideCodeEl) rideCodeEl.textContent = rideCode;
+  if (avatarEl) avatarEl.textContent = avatar;
+  if (chatPassengerEl) chatPassengerEl.textContent = passenger;
+  if (chatRideCodeEl) chatRideCodeEl.textContent = `Ride ${rideCode}`;
+  if (chatPickupEl) chatPickupEl.textContent = pickup;
+  if (chatDropEl) chatDropEl.textContent = drop;
+  if (chatRideStatusEl) chatRideStatusEl.textContent = status.replace("_", " ");
+  if (chatAvatarEl) chatAvatarEl.textContent = avatar;
+  if (subEl) subEl.textContent = `${shortAddress(pickup)} -> ${shortAddress(drop)}`;
+  if (requestedVehicleEl) requestedVehicleEl.textContent = window.WowVehicle?.label(localStorage.getItem("wow_ride_requested_vehicle")) || "Vehicle information unavailable";
+  if (assignedVehicleEl) {
+    const details = [
+      window.WowVehicle?.label(localStorage.getItem("wow_ride_driver_vehicle_type")),
+      localStorage.getItem("wow_ride_driver_vehicle_name") || "",
+      localStorage.getItem("wow_ride_driver_vehicle_number") || ""
+    ].filter((value) => value && value !== "Vehicle information unavailable");
+    assignedVehicleEl.textContent = details.join(" · ") || "Vehicle information unavailable";
+  }
+  updateTripHeaderMeta();
+}
+
+async function refreshDriverRideFromDb() {
+  const rideCode = localStorage.getItem("wow_ride_code") || "";
+  if (!rideCode) return;
+  const query = new URLSearchParams({
+    ride_code: rideCode,
+    role: "driver",
+    email: localStorage.getItem("wow_user_email") || "",
+    user_id: localStorage.getItem("wow_user_id") || ""
+  });
+  try {
+    const res = await fetch(`${RIDE_API.details}?${query.toString()}`);
+    const data = await res.json();
+    if (!res.ok || !data || !data.ok || !data.ride) return;
+    const ride = data.ride;
+    if (ride.pickup) localStorage.setItem("wow_ride_pickup", String(ride.pickup));
+    if (ride.dropoff) localStorage.setItem("wow_ride_drop", String(ride.dropoff));
+    if (ride.fare !== undefined) localStorage.setItem("wow_ride_fare", String(Number(ride.fare || 0)));
+    if (ride.ride_code) localStorage.setItem("wow_ride_code", String(ride.ride_code));
+    const firestoreRideId = String(localStorage.getItem("wow_ride_db_id") || "").trim();
+    if (ride.status && !firestoreRideId) {
+      localStorage.setItem("wow_ride_status", String(ride.status));
+    }
+    const effectiveStatus = firestoreRideId
+      ? localStorage.getItem("wow_ride_status") || ""
+      : ride.status;
+    const prevPhase = ridePhase;
+    if (isRideStartedStatus(effectiveStatus)) {
+      ridePhase = "toDrop";
+      localStorage.setItem("wow_ride_started", "1");
+      if (!localStorage.getItem("wow_ride_started_at")) {
+        localStorage.setItem("wow_ride_started_at", String(Date.now()));
+      }
+    } else {
+      ridePhase = "toPickup";
+      localStorage.removeItem("wow_ride_started");
+      localStorage.removeItem("wow_ride_started_at");
+    }
+    setDriverRideDetails();
+    updateRideActionState();
+    if (prevPhase !== ridePhase) refreshDriverRideMaps();
+  } catch {
+    // Keep fallback local state when refresh fails.
+  }
+}
+
+function toggleCancelModal(open) {
+  const overlay = document.getElementById("cancelOverlay");
+  const modal = document.getElementById("cancelModal");
+  if (open) {
+    overlay.classList.add("is-open");
+    modal.classList.add("is-open");
+  } else {
+    overlay.classList.remove("is-open");
+    modal.classList.remove("is-open");
+  }
+}
+
+function toggleStartModal(open) {
+  const overlay = document.getElementById("startOverlay");
+  const modal = document.getElementById("startModal");
+  if (open) {
+    overlay.classList.add("is-open");
+    modal.classList.add("is-open");
+  } else {
+    overlay.classList.remove("is-open");
+    modal.classList.remove("is-open");
+  }
+}
+
+function toggleCompleteConfirmModal(open) {
+  const overlay = document.getElementById("completeConfirmOverlay");
+  const modal = document.getElementById("completeConfirmModal");
+  if (!overlay || !modal) return;
+  if (open) {
+    overlay.classList.add("is-open");
+    modal.classList.add("is-open");
+  } else {
+    overlay.classList.remove("is-open");
+    modal.classList.remove("is-open");
+  }
+}
+
+function showRideCompleteSuccess() {
+  const overlay = document.getElementById("completeSuccessOverlay");
+  const modal = document.getElementById("completeSuccessModal");
+  const msg = document.getElementById("completeSuccessMessage");
+  const passenger = localStorage.getItem("wow_ride_passenger") || "Passenger";
+  const fare = Number(localStorage.getItem("wow_ride_fare") || 0);
+  if (msg) {
+    msg.textContent = `Fare Rs. ${fare} recorded. Waiting for passenger rating from ${passenger}.`;
+  }
+  if (overlay) overlay.classList.add("is-open");
+  if (modal) modal.classList.add("is-open");
+}
+
+function closeCompleteSuccessAndExit() {
+  const overlay = document.getElementById("completeSuccessOverlay");
+  const modal = document.getElementById("completeSuccessModal");
+  if (overlay) overlay.classList.remove("is-open");
+  if (modal) modal.classList.remove("is-open");
+  window.location.href = "driver-dashboard.html";
+}
+
+function showRideInfoModal(title, message) {
+  const t = document.getElementById("rideInfoTitle");
+  const m = document.getElementById("rideInfoMessage");
+  if (t) t.textContent = title || "Ride Update";
+  if (m) m.textContent = message || "Please continue.";
+  toggleRideInfoModal(true);
+}
+
+function toggleRideInfoModal(open) {
+  const overlay = document.getElementById("rideInfoOverlay");
+  const modal = document.getElementById("rideInfoModal");
+  if (!overlay || !modal) return;
+  if (open) {
+    overlay.classList.add("is-open");
+    modal.classList.add("is-open");
+  } else {
+    overlay.classList.remove("is-open");
+    modal.classList.remove("is-open");
+  }
+}
+
+function openMapModal() {
+  const overlay = document.getElementById("mapOverlay");
+  const modal = document.getElementById("mapModal");
+  overlay.classList.add("is-open");
+  modal.classList.add("is-open");
+  modal.setAttribute("aria-hidden", "false");
+
+  if (!rideMapFull) {
+    const mapEl = document.getElementById("driverRideMapFull");
+    if (mapEl && window.WowMapbox) {
+      rideMapFull = buildRideMap(mapEl, true);
+    }
+  } else if (rideBounds) {
+    rideMapFull.resize();
+    WowMapbox.fitMap(rideMapFull, rideBounds, 48);
+  }
+}
+
+function closeMapModal() {
+  const overlay = document.getElementById("mapOverlay");
+  const modal = document.getElementById("mapModal");
+  overlay.classList.remove("is-open");
+  modal.classList.remove("is-open");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+function toggleChatPanel(open) {
+  const overlay = document.getElementById("chatOverlay");
+  const panel = document.getElementById("chatPanel");
+  if (open) {
+    overlay.classList.add("is-open");
+    panel.classList.add("is-open");
+    panel.setAttribute("aria-hidden", "false");
+    fetchRideChat(false);
+    startRideChatPolling();
+    document.getElementById("chatInput").focus();
+  } else {
+    overlay.classList.remove("is-open");
+    panel.classList.remove("is-open");
+    panel.setAttribute("aria-hidden", "true");
+    stopRideChatPolling();
+  }
+}
+
+function toggleCallPanel(open) {
+  const overlay = document.getElementById("callOverlay");
+  const panel = document.getElementById("callPanel");
+  if (open) {
+    overlay.classList.add("is-open");
+    panel.classList.add("is-open");
+    panel.setAttribute("aria-hidden", "false");
+    startCallTimer();
+  } else {
+    overlay.classList.remove("is-open");
+    panel.classList.remove("is-open");
+    panel.setAttribute("aria-hidden", "true");
+    stopCallTimer();
+  }
+}
+
+function startCallTimer() {
+  stopCallTimer();
+  callSeconds = 0;
+  updateCallTimer();
+  callInterval = setInterval(() => {
+    callSeconds += 1;
+    updateCallTimer();
+  }, 1000);
+}
+
+function stopCallTimer() {
+  if (callInterval) {
+    clearInterval(callInterval);
+    callInterval = null;
+  }
+}
+
+function updateCallTimer() {
+  const minutes = String(Math.floor(callSeconds / 60)).padStart(2, "0");
+  const seconds = String(callSeconds % 60).padStart(2, "0");
+  const timerEl = document.getElementById("callTimer");
+  if (timerEl) timerEl.textContent = `${minutes}:${seconds}`;
+}
+
+function seedDriverChat() {
+  fetchRideChat(false);
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById("chatInput");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  const rideId = String(localStorage.getItem("wow_ride_db_id") || "").trim();
+  if (!rideId || !window.WowFirestore) return;
+  try {
+    const { db, uid, FieldValue } = await window.WowFirestore.ready();
+    await db.collection("rides").doc(rideId).collection("messages").add({
+      rideId,
+      senderId: uid,
+      senderRole: "driver",
+      senderName: localStorage.getItem("wow_user_name") || "Driver",
+      message: text,
+      text,
+      createdAt: FieldValue.serverTimestamp(),
+      read: false,
+      isRead: false
+    });
+  } catch (error) {
+    console.error("[WOW Driver Ride] Chat send failed", error);
+  }
+}
+
+function appendChatBubble(type, text, at = "") {
+  const chatBody = document.getElementById("chatBody");
+  if (!chatBody) return;
+  const row = document.createElement("div");
+  row.className = `chat-row ${type}`;
+  const bubble = document.createElement("div");
+  bubble.className = `chat-bubble ${type}`;
+  bubble.textContent = text;
+  const time = document.createElement("span");
+  time.className = "chat-time";
+  time.textContent = at || new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  row.appendChild(bubble);
+  row.appendChild(time);
+  chatBody.appendChild(row);
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+function renderRideChat(rows) {
+  const chatBody = document.getElementById("chatBody");
+  if (!chatBody) return;
+  chatBody.innerHTML = "";
+  (rows || []).forEach((msg) => {
+    const role = String(msg.senderRole || msg.role || "").toLowerCase() === "driver" ? "driver" : "passenger";
+    const date = msg.createdAt?.toDate ? msg.createdAt.toDate() : null;
+    const at = date ? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
+    appendChatBubble(role, String(msg.message || msg.text || ""), at);
+  });
+}
+
+function startRideChatPolling() {
+  stopRideChatPolling();
+  fetchRideChat(false);
+}
+
+function stopRideChatPolling() {
+  if (rideChatUnsubscribe) {
+    rideChatUnsubscribe();
+    rideChatUnsubscribe = null;
+  }
+}
+
+async function fetchRideChat(incremental = true) {
+  void incremental;
+  const rideId = String(localStorage.getItem("wow_ride_db_id") || "").trim();
+  if (!rideId || !window.WowFirestore || rideChatUnsubscribe) return;
+  try {
+    const { db } = await window.WowFirestore.ready();
+    rideChatUnsubscribe = db.collection("rides").doc(rideId).collection("messages")
+      .orderBy("createdAt", "asc")
+      .onSnapshot(
+        (snapshot) => renderRideChat(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))),
+        (error) => console.error("[WOW Driver Ride] Chat listener failed", error)
+      );
+  } catch (error) {
+    console.error("[WOW Driver Ride] Chat setup failed", error);
+  }
+}
+
+function currentUserPayload() {
+  return {
+    role: (localStorage.getItem("wow_user_role") || "driver").toLowerCase(),
+    email: localStorage.getItem("wow_user_email") || ""
+  };
+}
+
+function currentLocationText() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(`Pickup: ${localStorage.getItem("wow_ride_pickup") || "Unknown"} | Drop-off: ${localStorage.getItem("wow_ride_drop") || "Unknown"}`);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve(`Lat ${pos.coords.latitude.toFixed(6)}, Lng ${pos.coords.longitude.toFixed(6)}`),
+      () => resolve(`Pickup: ${localStorage.getItem("wow_ride_pickup") || "Unknown"} | Drop-off: ${localStorage.getItem("wow_ride_drop") || "Unknown"}`),
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 20000 }
+    );
+  });
+}
+
+function startRideTracking(mapInstance) {
+  if (!mapInstance || !window.WowMapbox) return;
+}
+
+async function initDriverRideLiveTracking() {
+  if (driverRideLiveTracker || !window.WowLiveTracking || !rideMap) return;
+  const rideId = String(localStorage.getItem("wow_ride_db_id") || "").trim();
+  if (!rideId) {
+    setDriverTrackingText("driverRideTrackingStatus", "Waiting for a valid ride to start live tracking.");
+    return;
+  }
+  try {
+    driverRideLiveTracker = await WowLiveTracking.start({
+      role: "driver",
+      rideId,
+      getMap: () => rideMap,
+      getDestination: (ride) => ({
+        latitude: String(ride?.status || "") === "started"
+          ? (ride?.destinationLatitude ?? readSavedLatLng("drop")?.lat)
+          : (ride?.pickupLatitude ?? readSavedLatLng("pickup")?.lat),
+        longitude: String(ride?.status || "") === "started"
+          ? (ride?.destinationLongitude ?? readSavedLatLng("drop")?.lng)
+          : (ride?.pickupLongitude ?? readSavedLatLng("pickup")?.lng)
+      }),
+      onStatus: (message) => setDriverTrackingText("driverRideTrackingStatus", message),
+      onPeerState: (message, stale) => {
+        const node = document.getElementById("driverRidePeerStatus");
+        if (node) { node.textContent = message; node.classList.toggle("error", Boolean(stale)); }
+      },
+      onLocation: (role, location) => {
+        if (role === "driver") { rideDriverAnchor = location.point; updateRideStats(); }
+      },
+      onRoute: ({ distanceKm, etaMinutes }) => {
+        ["driverDistance", "driverDistanceInline"].forEach((id) => setDriverTrackingText(id, `${distanceKm.toFixed(1)} km`));
+        ["driverEta", "driverEtaInline"].forEach((id) => setDriverTrackingText(id, `${etaMinutes} min`));
+      },
+      onRouteError: () => {
+        setDriverTrackingText("driverDistance", "Route temporarily unavailable");
+        setDriverTrackingText("driverEta", "--");
+      },
+      onRideStatus: (status, ride) => {
+        applyDriverRideSnapshot(ride);
+        localStorage.setItem("wow_ride_status", status);
+        if (status === "started") { ridePhase = "toDrop"; syncTripTimerState(); }
+        if (["completed", "cancelled"].includes(status)) stopDriverLocationTracking();
+        if (status === "cancelled") {
+          showRideInfoModal("Ride Cancelled", "This ride was cancelled.");
+          window.setTimeout(() => window.location.replace("driver-dashboard.html"), 1800);
+        }
+        updateRideActionState();
+      }
+    });
+    const recenter = document.getElementById("driverRideTrackingRecenter");
+    if (recenter && !recenter.dataset.bound) {
+      recenter.dataset.bound = "1";
+      recenter.addEventListener("click", () => driverRideLiveTracker?.recenter());
+    }
+  } catch (error) {
+    setDriverTrackingText("driverRideTrackingStatus", error?.message || "Live tracking could not start.");
+  }
+}
+
+function applyDriverRideSnapshot(ride) {
+  if (!ride || typeof ride !== "object") return;
+  if (ride.rideCode) localStorage.setItem("wow_ride_code", String(ride.rideCode));
+  if (ride.passengerName) localStorage.setItem("wow_ride_passenger", String(ride.passengerName));
+  if (ride.passengerPhone) localStorage.setItem("wow_ride_passenger_phone", String(ride.passengerPhone));
+  if (ride.pickupName || ride.pickupAddress) localStorage.setItem("wow_ride_pickup", String(ride.pickupName || ride.pickupAddress));
+  if (ride.destinationName || ride.destinationAddress) localStorage.setItem("wow_ride_drop", String(ride.destinationName || ride.destinationAddress));
+  if (ride.pickupLatitude != null) localStorage.setItem("wow_ride_pickup_lat", String(Number(ride.pickupLatitude)));
+  if (ride.pickupLongitude != null) localStorage.setItem("wow_ride_pickup_lng", String(Number(ride.pickupLongitude)));
+  if (ride.destinationLatitude != null) localStorage.setItem("wow_ride_drop_lat", String(Number(ride.destinationLatitude)));
+  if (ride.destinationLongitude != null) localStorage.setItem("wow_ride_drop_lng", String(Number(ride.destinationLongitude)));
+  if (ride.finalFare != null || ride.passengerOffer != null) localStorage.setItem("wow_ride_fare", String(Number(ride.finalFare ?? ride.passengerOffer)));
+  cacheDriverRideVehicle(ride);
+  setDriverRideDetails();
+}
+
+function cacheDriverRideVehicle(ride) {
+  if (!ride || typeof ride !== "object" || !window.WowVehicle) return;
+  const requested = window.WowVehicle.requestedType(ride);
+  const assigned = window.WowVehicle.driverVehicle({
+    driverVehicleType: ride.driverVehicleType || ride.acceptedDriverVehicle,
+    driverVehicleName: ride.driverVehicleName || ride.vehicleName,
+    driverVehicleNumber: ride.driverVehicleNumber || ride.vehicleNumber,
+    vehicleInfo: ride.vehicleInfo
+  });
+  if (requested) localStorage.setItem("wow_ride_requested_vehicle", requested);
+  if (assigned.type) localStorage.setItem("wow_ride_driver_vehicle_type", assigned.type);
+  if (assigned.name) localStorage.setItem("wow_ride_driver_vehicle_name", assigned.name);
+  if (assigned.number) localStorage.setItem("wow_ride_driver_vehicle_number", assigned.number);
+}
+
+function clearDriverRideVehicleCache() {
+  ["wow_ride_requested_vehicle", "wow_ride_driver_vehicle_type", "wow_ride_driver_vehicle_name", "wow_ride_driver_vehicle_number"]
+    .forEach((key) => localStorage.removeItem(key));
+}
+
+function setDriverTrackingText(id, value) {
+  const node = document.getElementById(id);
+  if (node) node.textContent = value;
+}
+
+function updateRideStats() {
+  const pickupPoint = readSavedLatLng("pickup") || pointFromText(ridePickup, { lat: 24.9207, lng: 67.0903 });
+  const dropPoint = readSavedLatLng("drop") || pointFromText(rideDrop, { lat: 24.8146, lng: 67.0438 });
+  const destination = ridePhase === "toDrop" ? dropPoint : pickupPoint;
+  const origin = rideDriverAnchor || pickupPoint;
+  const remainingDistance = Math.max(0, haversineMeters(origin, destination));
+
+  const distanceEl = document.getElementById("driverDistance");
+  const distanceInlineEl = document.getElementById("driverDistanceInline");
+  const etaEl = document.getElementById("driverEta");
+  const etaInlineEl = document.getElementById("driverEtaInline");
+  const progressEl = document.getElementById("driverProgress");
+
+  if (distanceEl) distanceEl.textContent = `${(remainingDistance / 1000).toFixed(1)} km`;
+  if (distanceInlineEl) distanceInlineEl.textContent = `${(remainingDistance / 1000).toFixed(1)} km`;
+  if (etaEl && !String(etaEl.textContent || "").includes("min")) etaEl.textContent = "--";
+  if (etaInlineEl && !String(etaInlineEl.textContent || "").includes("min")) etaInlineEl.textContent = "--";
+  if (progressEl) progressEl.style.width = "0%";
+}
+
+function readSavedLatLng(prefix) {
+  const rawLat = localStorage.getItem(`wow_ride_${prefix}_lat`);
+  const rawLng = localStorage.getItem(`wow_ride_${prefix}_lng`);
+  if (rawLat === null || rawLng === null || rawLat.trim() === "" || rawLng.trim() === "") return null;
+  const lat = Number(rawLat);
+  const lng = Number(rawLng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat, lng };
+}
+
+function fitDriverBounds(map, origin, pickup, drop) {
+  if (!map || !window.WowMapbox) return;
+  rideBounds = [origin, pickup, drop].filter(Boolean);
+  WowMapbox.fitMap(map, rideBounds, 48);
+}
+
+function refreshDriverRideMaps() {
+  const compact = document.getElementById("driverRideMap");
+  if (compact && window.WowMapbox) {
+    rideMap = buildRideMap(compact, false);
+  }
+  const full = document.getElementById("driverRideMapFull");
+  if (rideMapFull && full && window.WowMapbox) {
+    rideMapFull = buildRideMap(full, true);
+  }
+}
+
+function updateTripHeaderMeta() {
+  const status = String(localStorage.getItem("wow_ride_status") || "accepted").toLowerCase();
+  const rideCode = localStorage.getItem("wow_ride_code") || "--";
+  const tripStateEl = document.getElementById("driverTripState");
+  const tripRefEl = document.getElementById("driverTripRef");
+  const tripModeEl = document.getElementById("driverTripMode");
+  if (tripRefEl) tripRefEl.textContent = `Ride ${rideCode}`;
+  if (tripModeEl) tripModeEl.textContent = ridePhase === "toDrop" ? "To Drop-off" : "To Pickup";
+  if (!tripStateEl) return;
+  if (isRideStartedStatus(status)) tripStateEl.textContent = "Trip Started / On Trip";
+  else if (status === "arrived") tripStateEl.textContent = "Driver Arrived";
+  else if (isDriverArrivingStatus(status)) tripStateEl.textContent = "Driver On The Way";
+  else if (status === "completed") tripStateEl.textContent = "Trip Completed";
+  else tripStateEl.textContent = "Trip Accepted";
+}
+
+function syncTripTimerState() {
+  const status = String(localStorage.getItem("wow_ride_status") || "").toLowerCase();
+  if (isRideStartedStatus(status)) {
+    if (!localStorage.getItem("wow_ride_started_at")) {
+      localStorage.setItem("wow_ride_started_at", String(Date.now()));
+    }
+    startTripTimer();
+  } else {
+    stopTripTimer();
+    renderTripTimer();
+  }
+}
+
+function startTripTimer() {
+  const storedMs = Number(localStorage.getItem("wow_ride_started_at") || 0);
+  tripStartedAtMs = Number.isFinite(storedMs) && storedMs > 0 ? storedMs : Date.now();
+  renderTripTimer();
+  if (tripTimerInterval) return;
+  tripTimerInterval = setInterval(renderTripTimer, 1000);
+}
+
+function stopTripTimer() {
+  if (tripTimerInterval) {
+    clearInterval(tripTimerInterval);
+    tripTimerInterval = null;
+  }
+}
+
+function renderTripTimer() {
+  const timerEl = document.getElementById("driverTripTimer");
+  if (!timerEl) return;
+  const status = String(localStorage.getItem("wow_ride_status") || "").toLowerCase();
+  if (!isRideStartedStatus(status)) {
+    timerEl.textContent = "00:00";
+    return;
+  }
+  if (!tripStartedAtMs) {
+    const stored = Number(localStorage.getItem("wow_ride_started_at") || Date.now());
+    tripStartedAtMs = Number.isFinite(stored) ? stored : Date.now();
+  }
+  const elapsedSeconds = Math.max(0, Math.floor((Date.now() - tripStartedAtMs) / 1000));
+  const hours = Math.floor(elapsedSeconds / 3600);
+  const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+  const seconds = elapsedSeconds % 60;
+  timerEl.textContent = hours > 0
+    ? `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+    : `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function stopDriverLocationTracking() {
+  if (driverGeoWatchId !== null && navigator.geolocation) {
+    navigator.geolocation.clearWatch(driverGeoWatchId);
+    driverGeoWatchId = null;
+  }
+  if (rideTicker) {
+    clearInterval(rideTicker);
+    rideTicker = null;
+  }
+  if (driverFallbackTicker) {
+    clearInterval(driverFallbackTicker);
+    driverFallbackTicker = null;
+  }
+}
+
+function haversineMeters(from, to) {
+  if (!from || !to) return 0;
+  const R = 6371000;
+  const toRad = (v) => (v * Math.PI) / 180;
+  const lat1 = toRad(Number(from.lat));
+  const lat2 = toRad(Number(to.lat));
+  const dLat = toRad(Number(to.lat) - Number(from.lat));
+  const dLng = toRad(Number(to.lng) - Number(from.lng));
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+    + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function shortAddress(text) {
+  const firstPart = String(text || "").split(",")[0] || text || "";
+  return firstPart.length > 24 ? `${firstPart.slice(0, 24)}...` : firstPart;
+}
+
+function openExternalNavigation() {
+  const pickup = localStorage.getItem("wow_ride_pickup") || "";
+  const drop = localStorage.getItem("wow_ride_drop") || "";
+  const destination = ridePhase === "toDrop" ? drop : pickup;
+  if (!destination) return;
+  const origin = rideDriverAnchor
+    ? `${rideDriverAnchor.lat},${rideDriverAnchor.lng}`
+    : "";
+  const url = origin
+    ? `https://www.mapbox.com/directions/?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`
+    : `https://www.mapbox.com/directions/?destination=${encodeURIComponent(destination)}`;
+  const popup = window.open(url, "_blank", "noopener");
+  if (!popup) window.location.href = url;
+}
+
+function pointFromText(text, fallback) {
+  const base = fallback || { lat: 24.8607, lng: 67.0011 };
+  const chars = String(text || "").split("");
+  if (!chars.length) return base;
+  const hash = chars.reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+  return {
+    lat: base.lat + (((hash % 11) - 5) * 0.004),
+    lng: base.lng + ((((hash >> 2) % 11) - 5) * 0.004)
+  };
+}
+
+function isDriverArrivingStatus(status) {
+  return ["arrived", "driver_arriving"].includes(String(status || "").toLowerCase());
+}
+
+function isRideStartedStatus(status) {
+  return ["in_progress", "ride_started", "started", "on_trip"].includes(String(status || "").toLowerCase());
+}
+
+window.completeRide = completeRide;

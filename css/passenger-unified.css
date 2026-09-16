@@ -1,0 +1,254 @@
+:root {
+  --wow-bg: #f7f1fb;
+  --wow-surface: rgba(255, 255, 255, 0.9);
+  --wow-surface-strong: #ffffff;
+  --wow-border: rgba(154, 72, 255, 0.14);
+  --wow-text: #28153b;
+  --wow-muted: #7d6a91;
+  --wow-purple: #9a48ff;
+  --wow-pink: #f06aa5;
+  --wow-grad: linear-gradient(135deg, #9a48ff 0%, #f06aa5 100%);
+  --wow-shadow: 0 18px 40px rgba(112, 53, 178, 0.12);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body.passenger-shell {
+  background:
+    radial-gradient(circle at top left, rgba(240, 106, 165, 0.16), transparent 28%),
+    radial-gradient(circle at top right, rgba(154, 72, 255, 0.14), transparent 24%),
+    linear-gradient(180deg, #fff8fe 0%, #f7f1fb 48%, #f2ebfa 100%);
+  color: var(--wow-text);
+}
+
+body.passenger-shell.has-bottom-nav {
+  padding-bottom: 112px;
+}
+
+.passenger-shell .home-header,
+.passenger-shell .ride-topbar,
+.passenger-shell .help-header,
+.passenger-shell .profile-header {
+  width: min(1320px, calc(100vw - 24px));
+  margin: 10px auto 0;
+  border-radius: 28px;
+  padding: 18px 20px;
+  box-shadow: var(--wow-shadow);
+}
+
+.passenger-shell .home-main,
+.passenger-shell .ride-shell,
+.passenger-shell .help-shell,
+.passenger-shell .profile-main,
+.passenger-shell .shell {
+  width: min(1320px, calc(100vw - 24px));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.passenger-shell .ride-card,
+.passenger-shell .quick-item,
+.passenger-shell .ride-item,
+.passenger-shell .vehicle-card,
+.passenger-shell .trip-card,
+.passenger-shell .help-card,
+.passenger-shell .profile-card,
+.passenger-shell .profile-info > div,
+.passenger-shell .meta,
+.passenger-shell .chat-card,
+.passenger-shell .card,
+.passenger-shell .modal-card,
+.passenger-shell .sos-panel {
+  border: 1px solid var(--wow-border);
+  border-radius: 22px;
+  box-shadow: 0 12px 30px rgba(71, 33, 100, 0.08);
+  background: var(--wow-surface);
+}
+
+.passenger-shell .ride-map,
+.passenger-shell .confirm-map {
+  border-radius: 22px;
+  border: 1px solid var(--wow-border);
+}
+
+.passenger-shell .home-header .back-btn,
+.passenger-shell .ride-topbar .back-btn,
+.passenger-shell .help-header .back-btn,
+.passenger-shell .profile-header .back-btn,
+.passenger-shell .chat-header .back-btn,
+.passenger-shell .call-header .back-btn {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  border-radius: 16px;
+  min-height: 40px;
+  padding: 0 14px;
+  box-shadow: 0 12px 26px rgba(69, 20, 105, 0.18);
+  backdrop-filter: blur(10px);
+  font-weight: 700;
+}
+
+.passenger-shell .home-header .back-btn:hover,
+.passenger-shell .ride-topbar .back-btn:hover,
+.passenger-shell .help-header .back-btn:hover,
+.passenger-shell .profile-header .back-btn:hover,
+.passenger-shell .chat-header .back-btn:hover,
+.passenger-shell .call-header .back-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px rgba(69, 20, 105, 0.22);
+}
+
+.passenger-shell .contact-btn,
+.passenger-shell .cancel-btn,
+.passenger-shell .primary-start-btn,
+.passenger-shell .sos-btn,
+.passenger-shell .confirm-btn,
+.passenger-shell .offer-btn,
+.passenger-shell .send-btn,
+.passenger-shell .chat-icon-btn,
+.passenger-shell .modal-btn,
+.passenger-shell .end-call-btn,
+.passenger-shell .profile-actions .primary,
+.passenger-shell .profile-actions .outline {
+  min-height: 40px;
+  border-radius: 14px;
+}
+
+.passenger-shell .bottom-nav.driver-bottom-nav,
+.passenger-shell .ride-footer.driver-bottom-nav {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  bottom: 14px;
+  transform: translateX(-50%);
+  width: min(980px, calc(100vw - 16px));
+  padding: 10px 12px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(154, 72, 255, 0.12);
+  box-shadow: 0 16px 34px rgba(49, 21, 70, 0.14);
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  z-index: 80;
+}
+
+@media (min-width: 901px) {
+  body.passenger-shell.has-bottom-nav {
+    padding-top: 0;
+    padding-bottom: 98px;
+  }
+
+  .passenger-shell .driver-bottom-nav .nav-item {
+    min-height: 52px;
+    grid-template-columns: auto auto;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+}
+
+.passenger-shell .driver-bottom-nav .nav-item {
+  position: relative;
+  border: none;
+  background: transparent;
+  color: var(--wow-muted);
+  text-decoration: none;
+  min-height: 54px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.passenger-shell .driver-bottom-nav .nav-item,
+.passenger-shell .driver-bottom-nav .nav-item:hover,
+.passenger-shell .driver-bottom-nav .nav-item:focus,
+.passenger-shell .driver-bottom-nav .nav-item:focus-visible,
+.passenger-shell .driver-bottom-nav .nav-item:active,
+.passenger-shell .driver-bottom-nav .nav-item span,
+.passenger-shell .driver-bottom-nav .nav-item.active span {
+  text-decoration: none !important;
+  border-bottom: none !important;
+  box-shadow: none;
+}
+
+.passenger-shell .driver-bottom-nav .nav-icon,
+.passenger-shell .driver-bottom-nav .nav-item svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.passenger-shell .driver-bottom-nav .nav-item.active {
+  color: #fff;
+}
+
+.passenger-shell .driver-bottom-nav .nav-item.active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: var(--wow-grad);
+  box-shadow: 0 10px 16px rgba(154, 72, 255, 0.2);
+}
+
+.passenger-shell .driver-bottom-nav .nav-item > * {
+  position: relative;
+  z-index: 1;
+}
+
+.passenger-shell .driver-bottom-nav .nav-item.has-unread::after {
+  content: attr(data-unread);
+  position: absolute;
+  top: 5px;
+  left: calc(50% + 8px);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #ef2a5f;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+@media (max-width: 900px) {
+  .passenger-shell .home-header,
+  .passenger-shell .ride-topbar,
+  .passenger-shell .help-header,
+  .passenger-shell .profile-header {
+    border-radius: 22px;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 720px) {
+  .passenger-shell .bottom-nav.driver-bottom-nav,
+  .passenger-shell .ride-footer.driver-bottom-nav {
+    width: calc(100vw - 10px);
+    padding: 8px 8px 10px;
+    gap: 4px;
+  }
+
+  .passenger-shell .driver-bottom-nav .nav-item {
+    min-height: 50px;
+    font-size: 8.5px;
+  }
+
+  .passenger-shell .driver-bottom-nav .nav-icon,
+  .passenger-shell .driver-bottom-nav .nav-item svg {
+    width: 16px;
+    height: 16px;
+  }
+}

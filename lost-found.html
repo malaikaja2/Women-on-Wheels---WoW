@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Lost &amp; Found - Women on Wheels</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/lost-found.css?v=20260730-driver4">
+  <script src="js/wow-role-guard.js"></script>
+</head>
+<body data-call-role="passenger">
+<main class="lf-shell">
+  <section class="lf-hero"><a href="help.html" onclick="localStorage.removeItem('wow_open_profile')">&larr; Back to Help &amp; Support</a><h1>Lost &amp; Found</h1><p>Report an item from a completed ride and track the case in real time.</p></section>
+  <section class="lf-card" id="reportCard">
+    <h2>Report Lost Item</h2>
+    <p class="lf-note">The selected ride must be completed and belong to your authenticated account.</p>
+    <form id="lostForm" class="lf-grid">
+      <label>Ride ID<input id="lfRideId" readonly required></label>
+      <label>Item Category<select id="lfCategory" required><option value="">Choose category</option><option>Mobile Phone</option><option>Wallet</option><option>Bag</option><option>Documents</option><option>Keys</option><option>Clothing</option><option>Electronics</option><option>Other</option></select></label>
+      <label>Item Name<input id="lfName" required maxlength="80"></label>
+      <label>Item Color<input id="lfColor" maxlength="50"></label>
+      <label class="lf-span">Item Description<textarea id="lfDescription" required maxlength="600"></textarea></label>
+      <label>Last Seen Location (optional)<input id="lfLocation" maxlength="180"></label>
+      <label>Upload Item Photo (optional)<input id="lfPhoto" type="file" accept="image/jpeg,image/png,image/webp"></label>
+      <label class="lf-span">Additional Notes<textarea id="lfNotes" maxlength="600"></textarea></label>
+      <div class="lf-span"><p class="lf-error" id="lfError"></p><button class="lf-btn" id="lfSubmit">Submit Report</button></div>
+    </form>
+  </section>
+  <section class="lf-card"><h2>My Lost &amp; Found Reports</h2><div id="passengerCases" class="lf-list"><div class="lf-empty">Loading cases&hellip;</div></div></section>
+</main>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="js/wow-firestore.js"></script><script src="js/wow-lost-found.js?v=20260730-workflow4"></script><script src="js/wow-ride-call.js?v=20260729-lostfound2"></script><script src="js/lost-found-passenger.js?v=20260730-chat1"></script><script src="js/lost-found-call-ui.js?v=20260729-privatecall1"></script>
+</body></html>

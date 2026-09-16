@@ -1,0 +1,100 @@
+:root {
+  --wow-call-bg: #171022;
+  --wow-call-surface: #34283f;
+  --wow-call-accent: #9a62f1;
+  --wow-call-pink: #ef2a5f;
+  --wow-call-green: #22a75a;
+  --wow-call-text: #ffffff;
+  --wow-call-muted: #d8cde2;
+}
+
+.call-panel {
+  background: radial-gradient(circle at 50% 25%, #3d2754 0, var(--wow-call-bg) 55%) !important;
+  color: var(--wow-call-text);
+}
+
+.call-panel .call-header {
+  color: var(--wow-call-text);
+  border-bottom-color: rgba(255,255,255,.08);
+}
+
+.call-panel .back-btn { color: var(--wow-call-text); }
+
+.call-panel .call-card {
+  background: transparent;
+  box-shadow: none;
+  min-height: 310px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.call-panel .avatar.large {
+  width: 112px;
+  height: 112px;
+  border: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--wow-call-accent), var(--wow-call-pink));
+  box-shadow: 0 18px 44px rgba(0,0,0,.28);
+}
+
+.call-panel #callStatus { color: var(--wow-call-muted); }
+.call-panel .call-timer { color: #fff; font-variant-numeric: tabular-nums; }
+
+.call-live-actions {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin: 12px 0 28px;
+}
+
+.call-action {
+  width: 76px;
+  border: 0;
+  padding: 0;
+  color: #fff;
+  background: transparent;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font: 600 12px/1.2 Manrope, sans-serif;
+}
+
+.call-action-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--wow-call-surface);
+  transition: transform .16s ease, background .16s ease;
+}
+
+.call-action:hover .call-action-icon { transform: translateY(-2px); }
+.call-action[aria-pressed="true"] .call-action-icon { background: #fff; color: var(--wow-call-bg); }
+.call-action--answer .call-action-icon { background: var(--wow-call-green); }
+.call-action--decline .call-action-icon,
+.call-action--end .call-action-icon { background: var(--wow-call-pink); }
+.call-action svg { width: 27px; height: 27px; fill: currentColor; }
+.call-action[hidden] { display: none !important; }
+
+.call-panel .end-call-btn { display: none !important; }
+
+@media (max-width: 520px) {
+  .call-panel { width: 100% !important; max-width: none !important; }
+  .call-panel .call-card { min-height: 280px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .call-action-icon { transition: none; }
+}

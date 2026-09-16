@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#faf7fc">
+  <title>Lost &amp; Found - Driver</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/lost-found.css?v=20260730-driver4">
+  <link rel="stylesheet" href="css/driver-nav.css">
+  <script src="js/wow-role-guard.js"></script>
+</head>
+<body data-driver-page="lostfound" data-call-role="driver">
+  <main class="lf-shell">
+    <header class="lf-page-header">
+      <div class="lf-header-main">
+        <a class="lf-back" href="driver-dashboard.html" aria-label="Back to Driver Dashboard">&larr;</a>
+        <div>
+          <span class="lf-eyebrow">Driver support</span>
+          <h1>Lost &amp; Found</h1>
+          <p>Manage reported items and arrange safe returns after completed rides.</p>
+        </div>
+      </div>
+      <div class="lf-stats" aria-label="Case summary">
+        <div><span>Active</span><strong id="lfActiveCount">0</strong></div>
+        <div><span>Pending</span><strong id="lfPendingCount">0</strong></div>
+        <div><span>Closed</span><strong id="lfClosedCount">0</strong></div>
+      </div>
+    </header>
+
+    <section class="lf-card lf-report-card" id="driverReportCard" hidden>
+      <div class="lf-section-head"><div><span class="lf-eyebrow">Completed ride</span><h2>Report an item you found</h2></div></div>
+      <form id="driverReportForm" class="lf-grid">
+        <label>Ride ID<input id="foundRideId" readonly required></label>
+        <label>Item Category<select id="foundCategory" required><option value="">Choose category</option><option>Mobile Phone</option><option>Wallet</option><option>Bag</option><option>Documents</option><option>Keys</option><option>Clothing</option><option>Electronics</option><option>Other</option></select></label>
+        <label>Item Name<input id="foundName" required maxlength="80"></label>
+        <label>Item Color<input id="foundColor" maxlength="50"></label>
+        <label class="lf-span">Item Description<textarea id="foundDescription" required maxlength="600"></textarea></label>
+        <label>Photo (optional)<input id="foundPhoto" type="file" accept="image/jpeg,image/png,image/webp"></label>
+        <label class="lf-span">Notes<textarea id="foundNotes" maxlength="600"></textarea></label>
+        <div class="lf-span"><p class="lf-error" id="foundError" role="alert"></p><button class="lf-btn" id="foundSubmit">Submit Found Item</button></div>
+      </form>
+    </section>
+
+    <section class="lf-cases-panel">
+      <div class="lf-tabs" role="tablist" aria-label="Lost and Found case filters">
+        <button class="lf-tab active" type="button" data-filter="pending" role="tab" aria-selected="true">Pending <span data-count="pending">0</span></button>
+        <button class="lf-tab" type="button" data-filter="found" role="tab" aria-selected="false">Found <span data-count="found">0</span></button>
+        <button class="lf-tab" type="button" data-filter="returned" role="tab" aria-selected="false">Returned <span data-count="returned">0</span></button>
+        <button class="lf-tab" type="button" data-filter="closed" role="tab" aria-selected="false">Closed <span data-count="closed">0</span></button>
+      </div>
+      <div id="driverCases" class="lf-list" aria-live="polite">
+        <div class="lf-skeleton-card"><i></i><i></i><i></i></div>
+        <div class="lf-skeleton-card"><i></i><i></i><i></i></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="lf-modal-backdrop" id="caseModalBackdrop" hidden></div>
+  <section class="lf-modal" id="responseModal" role="dialog" aria-modal="true" aria-labelledby="responseTitle" hidden>
+    <div class="lf-modal-head"><div><span class="lf-eyebrow">Case update</span><h2 id="responseTitle">Driver Response</h2></div><button type="button" id="closeResponse" aria-label="Close">&times;</button></div>
+    <form id="driverResponseForm" class="lf-grid">
+      <input id="driverCaseId" type="hidden">
+      <label>Response<select id="driverResponse" required><option value="">Choose response</option><option value="item_found">I Found the Item</option><option value="item_not_found">I Did Not Find the Item</option><option value="check_later">I Will Check Later</option></select></label>
+      <label>Item Photo<input id="driverPhoto" type="file" accept="image/jpeg,image/png,image/webp"></label>
+      <label class="lf-span">Notes<textarea id="driverNotes" maxlength="600"></textarea></label>
+      <p class="lf-error lf-span" id="driverError" role="alert"></p>
+      <div class="lf-modal-actions lf-span"><button class="lf-btn secondary" type="button" data-close-modal>Cancel</button><button class="lf-btn" id="responseSubmit">Save Response</button></div>
+    </form>
+  </section>
+
+  <section class="lf-modal" id="returnModal" role="dialog" aria-modal="true" aria-labelledby="returnTitle" hidden>
+    <div class="lf-modal-head"><div><span class="lf-eyebrow">Safe handover</span><h2 id="returnTitle">Schedule Return Meeting</h2></div><button type="button" data-close-modal aria-label="Close">&times;</button></div>
+    <form id="returnMeetingForm" class="lf-grid">
+      <input id="returnCaseId" type="hidden">
+      <label>Meeting Date<input id="returnDate" type="date" required></label>
+      <label>Meeting Time<input id="returnClock" type="time" required></label>
+      <label class="lf-span">Meeting Location<input id="returnLocation" maxlength="180" required placeholder="Public meeting location"></label>
+      <p class="lf-help lf-span">The passenger will be notified and must confirm before the item can be marked returned.</p>
+      <p class="lf-error lf-span" id="returnError" role="alert"></p>
+      <div class="lf-modal-actions lf-span"><button class="lf-btn secondary" type="button" data-close-modal>Cancel</button><button class="lf-btn" id="returnSubmit">Send Meeting Plan</button></div>
+    </form>
+  </section>
+
+  <div data-driver-nav-mount></div>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="js/wow-firestore.js?v=20260730-auth-uid1"></script>
+  <script src="js/wow-lost-found.js?v=20260730-workflow4"></script>
+  <script src="js/wow-ride-call.js?v=20260729-lostfound2"></script>
+  <script src="js/driver-lost-items.js?v=20260803-server-cases1"></script>
+  <script src="js/lost-found-call-ui.js?v=20260729-privatecall1"></script>
+  <script src="js/driver-nav.js?v=20260802-lost-found-nav1"></script>
+</body>
+</html>

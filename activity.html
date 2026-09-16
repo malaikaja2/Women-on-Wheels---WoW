@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#9a48ff"><title>Activity - Women on Wheels</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/passenger-unified.css?v=20260728-nav3"><link rel="stylesheet" href="css/activity.css?v=20260728-2">
+  <script src="js/wow-role-guard.js"></script>
+</head>
+<body class="passenger-shell activity-page">
+  <header class="activity-header"><a class="activity-back" href="app-home.html" aria-label="Back to passenger home">&larr;</a><div><span>Passenger</span><h1>Activity</h1><p>Your latest ride, payment, review, and Lost &amp; Found updates.</p></div><button id="activityRefresh" class="activity-refresh" type="button">Refresh</button></header>
+  <main class="activity-main">
+    <div id="activityLoading" class="activity-list" aria-label="Loading activity"><div class="activity-skeleton"></div><div class="activity-skeleton"></div><div class="activity-skeleton"></div></div>
+    <section id="activityError" class="activity-state" hidden><div class="activity-state-icon">!</div><h2>Activity could not be loaded</h2><p>Check your connection and try again.</p><button id="activityRetry" type="button">Retry</button></section>
+    <section id="activityEmpty" class="activity-state" hidden><div class="activity-state-icon">&#8644;</div><h2>No activity yet</h2><p>Your ride and payment updates will appear here.</p></section>
+    <section id="activityList" class="activity-list" aria-live="polite"></section>
+  </main>
+  <nav class="bottom-nav driver-bottom-nav" aria-label="Passenger navigation">
+    <a class="nav-item" href="app-home.html"><span>Home</span></a>
+    <a class="nav-item active" href="activity.html" aria-current="page"><span>Activity</span></a>
+    <a class="nav-item" href="dashboard.html"><span>Book</span></a>
+    <a class="nav-item" href="help.html"><span>Help</span></a>
+    <a class="nav-item" href="profile.html"><span>Profile</span></a>
+  </nav>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="js/wow-firestore.js"></script><script src="js/passenger-navigation.js?v=20260803-live-notifications1"></script><script src="js/activity.js?v=20260728-2"></script>
+</body></html>

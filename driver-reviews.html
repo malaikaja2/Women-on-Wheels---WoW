@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Driver Reviews - Women on Wheels</title>
+  <link rel="stylesheet" href="css/driver-reviews.css">
+  <link rel="stylesheet" href="css/driver-nav.css?v=20260412-3">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/passenger-chatbot.css?v=20260722-intent1"></head>
+<body>
+  <header class="reviews-header">
+    <button class="back-btn" type="button" data-driver-back data-fallback="driver-dashboard.html">
+      <span class="back-icon">&#8592;</span>
+      <span class="back-text">Back</span>
+    </button>
+    <div>
+      <span>Driver Reviews</span>
+      <strong id="reviewDriverName">Driver</strong>
+    </div>
+  </header>
+
+  <main class="reviews-main">
+    <section class="summary-card">
+      <div class="rating-badge">
+        <strong id="reviewAvgRating">0.0</strong>
+        <span>Overall</span>
+      </div>
+      <div class="summary-copy">
+        <div class="stars" id="reviewStars" aria-label="Average rating"></div>
+        <p id="reviewSummaryText">Based on 0 passenger reviews</p>
+        <div class="summary-metrics">
+          <span><strong id="reviewTotalCount">0</strong> Reviews</span>
+          <span><strong id="reviewTopRating">0%</strong> 5-Star</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="review-filters" aria-label="Review filters">
+      <label for="reviewFilter">Filter</label>
+      <select id="reviewFilter">
+        <option value="recent">Most recent</option><option value="highest">Highest rating</option>
+        <option value="lowest">Lowest rating</option><option value="week">This week</option>
+        <option value="month">This month</option><option value="car">Car rides</option>
+        <option value="bike">Bike rides</option><option value="scooty">Scooty rides</option>
+        <option value="private">Private rides</option><option value="carpool">Carpool rides</option>
+      </select>
+    </section>
+    <section class="distribution-card" id="reviewDistribution"></section>
+    <section class="reviews-list" id="reviewsList">
+      <article class="review-item">
+        <div class="review-top">
+          <strong>No reviews yet</strong>
+          <span class="review-rating-stars" aria-hidden="true"></span>
+        </div>
+        <p>Complete more rides to collect passenger feedback.</p>
+        <span class="review-time">Now</span>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const REVIEW_API = "php/ratings_reviews.php";
+    const storedName = localStorage.getItem("wow_user_name") || "";
+    const storedEmail = localStorage.getItem("wow_user_email") || "";
+    const name = storedName || storedEmail.split("@")[0] || "Driver";
+    document.getElementById("reviewDriverName").textContent = name;
+
+    const avgEl = document.getElementById("reviewAvgRating");
+    const starsEl = document.getElementById("reviewStars");
+    const summaryEl = document.getElementById("reviewSummaryText");
+    const totalCountEl = document.getElementById("reviewTotalCount");
+    const topRatingEl = document.getElementById("reviewTopRating");
+    const listEl = document.getElementById("reviewsList");
+
+    function esc(v) {
+      return String(v || "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quot;").replaceAll("'", "&#39;");
+    }
+
+    function starsHtml(value) {
+      const n = Math.max(0, Math.min(5, Number(value || 0)));
+      const full = Math.round(n);
+      let html = "";
+      for (let i = 1; i <= 5; i += 1) {
+        html += `<span class="star ${i <= full ? "filled" : "empty"}">?</span>`;
+      }
+      return html;
+    }
+
+    async function loadDriverReviews() {
+      try {
+        const query = new URLSearchParams({
+          action: "driver_summary",
+          role: "driver",
+          email: localStorage.getItem("wow_user_email") || "",
+          user_id: localStorage.getItem("wow_user_id") || "",
+          limit: "50"
+        });
+        const res = await fetch(`${REVIEW_API}?${query.toString()}`, { cache: "no-store" });
+        const data = await res.json();
+        if (!res.ok || !data || !data.ok) return;
+
+        const avg = Number(data.summary?.avg_rating || 0);
+        const total = Number(data.summary?.total_reviews || 0);
+        avgEl.textContent = avg.toFixed(1);
+        starsEl.innerHTML = starsHtml(avg);
+        summaryEl.textContent = `Based on ${total} passenger review${total === 1 ? "" : "s"}`;
+        totalCountEl.textContent = String(total);
+
+        const rows = Array.isArray(data.reviews) ? data.reviews : [];
+        const fiveStarCount = rows.filter((row) => Number(row.rating || 0) >= 5).length;
+        const fiveStarPct = total > 0 ? Math.round((fiveStarCount / total) * 100) : 0;
+        topRatingEl.textContent = `${fiveStarPct}%`;
+
+        if (!rows.length) {
+          listEl.innerHTML = '<article class="review-item"><div class="review-top"><strong>No reviews yet</strong><span class="review-rating-stars" aria-hidden="true"></span></div><p>Complete more rides to collect passenger feedback.</p><span class="review-time">Now</span></article>';
+          return;
+        }
+
+        listEl.innerHTML = rows.map((row) => {
+          const when = row.created_at
+            ? new Date(row.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
+            : "Recently";
+          const rating = Number(row.rating || 0);
+          return `
+            <article class="review-item">
+              <div class="review-top">
+                <strong>${esc(row.passenger_name || "Passenger")}</strong>
+                <span class="review-rating-stars" aria-label="Rating ${rating} out of 5">${starsHtml(rating)}</span>
+              </div>
+              <p>${esc(row.review_text || "No written comment.")}</p>
+              <span class="review-time">${esc(when)}</span>
+            </article>
+          `;
+        }).join("");
+      } catch {}
+    }
+
+    loadDriverReviews();
+  </script>
+  <script>
+    const backBtn = document.querySelector("[data-driver-back]");
+    if (backBtn) {
+      backBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = "driver-dashboard.html";
+        }
+      });
+    }
+  </script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script><script src="js/wow-firestore.js?v=20260730-auth-uid1"></script><script src="js/driver-reviews-live.js?v=20260905-review1"></script><script src="js/passenger-chatbot.js?v=20260730-chatbot-fix1"></script></body>
+</html>

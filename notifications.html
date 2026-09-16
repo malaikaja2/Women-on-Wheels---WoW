@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Notifications | Women on Wheels</title>
+  <link rel="stylesheet" href="css/app-home.css">
+  <link rel="stylesheet" href="css/notifications.css">
+</head>
+<body class="notification-page">
+  <header class="notification-header">
+    <a class="notification-back" href="app-home.html" aria-label="Back">&larr;</a>
+    <div><span>Passenger</span><h1>Notifications</h1><p>Ride alerts and updates</p></div>
+    <button class="notification-mark-all" id="markAllNotifications" type="button" hidden>Mark all read</button>
+  </header>
+  <main class="notification-main">
+    <section class="notification-list" id="notificationLoading" aria-label="Loading notifications">
+      <div class="notification-skeleton"></div><div class="notification-skeleton"></div><div class="notification-skeleton"></div>
+    </section>
+    <section class="notification-state" id="notificationEmpty" hidden>
+      <span class="notification-state-icon">&cir;</span><h2>No notifications yet</h2>
+      <p>Your ride alerts and updates will appear here.</p>
+    </section>
+    <section class="notification-state" id="notificationError" hidden>
+      <span class="notification-state-icon">!</span><h2>Notifications could not be loaded</h2>
+      <p>Check your connection and try again.</p><button id="notificationRetry" type="button">Retry</button>
+    </section>
+    <section class="notification-list" id="notificationList" aria-live="polite" hidden></section>
+  </main>
+  <nav class="bottom-nav" aria-label="Passenger navigation"></nav>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="js/wow-firestore.js?v=20260728-1"></script>
+  <script src="js/passenger-navigation.js?v=20260803-live-notifications1"></script>
+  <script src="js/notifications.js?v=20260730-dedupe1"></script>
+</body>
+</html>

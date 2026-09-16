@@ -1,0 +1,183 @@
+<?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/fare_engine.php';
+
+$input = fare_input();
+$rideCode = fare_get_string($input, 'ride_code', '');
+$rideId = trim((string)($input['ride_id'] ?? ''));
+if ($rideCode === '' && $rideId === '') {
+    fare_json(['ok' => false, 'error' => 'ride_identifier_required'], 422);
+}
+
+$status = fare_normalize_ride_status(fare_get_string($input, 'status', 'in_progress'));
+$allowedStatuses = ['pending', 'driver_selected', 'accepted', 'driver_arriving', 'ride_started', 'completed', 'cancelled'];
+if (!in_array($status, $allowedStatuses, true)) {
+    fare_json(['ok' => false, 'error' => 'invalid_status'], 422);
+}
+
+try {
+    $docId = $rideId;
+    $collectionName = 'rides';
+    $ride = null;
+    if ($docId !== '') {
+        $snapshot = wow_firestore()->collection($collectionName)->document($docId)->snapshot();
+        if ($snapshot->exists()) {
+            $ride = $snapshot->data();
+        } else {
+            $legacySnapshot = wow_firestore()->collection('rideRequests')->document($docId)->snapshot();
+            if ($legacySnapshot->exists()) {
+                $collectionName = 'rideRequests';
+                $ride = $legacySnapshot->data();
+            }
+        }
+    }
+    if (!$ride && $rideCode !== '') {
+        $docs = wow_firestore()->collection($collectionName)->where('rideCode', '=', $rideCode)->limit(1)->documents();
+        foreach ($docs as $doc) {
+            if ($doc->exists()) {
+                $docId = $doc->id();
+                $ride = $doc->data();
+                break;
+            }
+        }
+        if (!$ride) {
+            $legacyDocs = wow_firestore()->collection('rideRequests')->where('rideCode', '=', $rideCode)->limit(1)->documents();
+            foreach ($legacyDocs as $doc) {
+                if ($doc->exists()) {
+                    $collectionName = 'rideRequests';
+                    $docId = $doc->id();
+                    $ride = $doc->data();
+                    break;
+                }
+            }
+        }
+    }
+    if (!$ride) fare_json(['ok' => false, 'error' => 'ride_not_found'], 404);
+
+    $currentStatus = fare_normalize_ride_status((string)($ride['status'] ?? 'pending'));
+    $transitions = [
+        'pending' => ['accepted', 'cancelled'],
+        'driver_selected' => ['accepted', 'cancelled'],
+        'accepted' => ['driver_arriving', 'ride_started', 'cancelled'],
+        'driver_arriving' => ['ride_started', 'cancelled'],
+        'ride_started' => ['completed', 'cancelled'],
+        'completed' => [],
+        'cancelled' => [],
+    ];
+    if ($status !== $currentStatus && !in_array($status, $transitions[$currentStatus] ?? [], true)) {
+        fare_json(['ok' => false, 'error' => 'invalid_status_transition', 'from' => $currentStatus, 'to' => $status], 409);
+    }
+
+    $actorRole = strtolower(fare_get_string($input, 'role', fare_get_string($input, 'user_role', '')));
+    $driverUid = fare_resolve_user_id($conn, 'driver', $input);
+    if ($driverUid === '') {
+        $driverUid = trim((string)($input['driver_id'] ?? $input['driver_uid'] ?? ''));
+    }
+
+    if (in_array($status, ['accepted', 'driver_arriving', 'ride_started', 'completed'], true)) {
+        if ($actorRole !== 'driver') {
+            fare_json(['ok' => false, 'error' => 'driver_role_required'], 403);
+        }
+        if ($driverUid === '' && empty($ride['driverUid']) && empty($ride['targetDriverUid'])) {
+            fare_json(['ok' => false, 'error' => 'driver_required_for_status'], 422);
+        }
+        $actingDriverUid = $driverUid !== '' ? $driverUid : (string)($ride['driverUid'] ?? $ride['targetDriverUid'] ?? '');
+        if ($currentStatus === 'pending' && $status === 'accepted' && !empty($ride['targetDriverUid']) && $actingDriverUid !== (string)$ride['targetDriverUid']) {
+            fare_json(['ok' => false, 'error' => 'ride_not_assigned_to_driver'], 403);
+        }
+        if (!empty($ride['driverUid']) && $actingDriverUid !== (string)$ride['driverUid']) {
+            fare_json(['ok' => false, 'error' => 'ride_owned_by_other_driver'], 403);
+        }
+        $driverUid = $actingDriverUid;
+    }
+
+    if ($status === 'cancelled' && strtolower(trim((string)($input['cancel_mode'] ?? ''))) === 'remove_pending' && $currentStatus === 'pending') {
+        wow_delete_doc($collectionName, $docId);
+        fare_json(['ok' => true, 'ride_id' => $docId, 'ride_code' => (string)($ride['rideCode'] ?? ''), 'status' => 'cancelled', 'removed' => true]);
+    }
+
+    $updates = [
+        'status' => $status,
+        'updatedAt' => wow_now(),
+    ];
+    // Keep the mobile API vocabulary compatible with the canonical web queue.
+    if ($collectionName === 'rides') {
+        $canonicalStatuses = [
+            'pending' => 'searching',
+            'driver_selected' => 'driver_assigned',
+            'accepted' => 'driver_assigned',
+            'driver_arriving' => 'driver_arriving',
+            'ride_started' => 'started',
+            'completed' => 'completed',
+            'cancelled' => 'cancelled',
+        ];
+        $updates['status'] = $canonicalStatuses[$status] ?? $status;
+        if (in_array($status, ['driver_selected', 'accepted'], true)) $updates['requestStatus'] = 'matched';
+        if ($status === 'cancelled') $updates['requestStatus'] = 'cancelled';
+    }
+    if ($driverUid !== '') {
+        $updates['driverID'] = $driverUid;
+        $updates['driverUid'] = $driverUid;
+        if ($collectionName === 'rides') $updates['assignedDriverId'] = $driverUid;
+        $updates['targetDriverUid'] = $ride['targetDriverUid'] ?? $driverUid;
+        $driver = wow_doc_data('drivers', $driverUid);
+        $updates['targetDriverName'] = fare_get_string($input, 'target_driver_name', (string)($driver['name'] ?? $ride['targetDriverName'] ?? ''));
+        $updates['driverName'] = fare_get_string($input, 'driver_name', (string)($driver['name'] ?? $updates['targetDriverName'] ?? 'Driver'));
+        $updates['driverPhone'] = fare_get_string($input, 'driver_phone', (string)($driver['phone'] ?? ''));
+        $updates['vehicleInfo'] = [
+            'type' => (string)($driver['vehicleType'] ?? $ride['vehicleType'] ?? ''),
+            'number' => (string)($driver['vehicleNumber'] ?? ''),
+            'model' => (string)($driver['vehicleModel'] ?? $driver['vehicle'] ?? ''),
+            'color' => (string)($driver['vehicleColor'] ?? ''),
+        ];
+    }
+    foreach ([
+        'fare' => 'fare',
+        'offered_fare' => 'offeredFare',
+        'distance_km' => 'distanceKm',
+        'duration_min' => 'durationMin',
+    ] as $inputKey => $field) {
+        $value = fare_get_float($input, $inputKey);
+        if ($value !== null) $updates[$field] = $value;
+    }
+    if (fare_get_string($input, 'vehicle_type', '') !== '') $updates['vehicleType'] = fare_normalize_vehicle(fare_get_string($input, 'vehicle_type', ''));
+    if (fare_get_string($input, 'traffic_level', '') !== '') $updates['trafficLevel'] = fare_normalize_traffic(fare_get_string($input, 'traffic_level', ''));
+    if (fare_get_string($input, 'time_of_day', '') !== '') $updates['timeOfDay'] = fare_normalize_time_of_day(fare_get_string($input, 'time_of_day', ''));
+    if (fare_get_string($input, 'payment_method', '') !== '') $updates['paymentMethod'] = strtolower(fare_get_string($input, 'payment_method', ''));
+    if (fare_get_string($input, 'payment_label', '') !== '') $updates['paymentLabel'] = fare_get_string($input, 'payment_label', '');
+    if ($status === 'accepted') {
+        $updates['acceptedAt'] = wow_now();
+        $updates['acceptedTime'] = $updates['acceptedAt'];
+    }
+    if ($status === 'driver_arriving') $updates['driverArrivingTime'] = wow_now();
+    if ($status === 'ride_started') {
+        $updates['startedAt'] = wow_now();
+        $updates['startedTime'] = $updates['startedAt'];
+    }
+    if ($status === 'completed') {
+        $updates['completedAt'] = wow_now();
+        $updates['completedTime'] = $updates['completedAt'];
+        $updates['finalFare'] = $updates['fare'] ?? ($ride['fare'] ?? 0);
+    }
+
+    wow_firestore()->collection($collectionName)->document($docId)->set($updates, ['merge' => true]);
+
+    fare_json([
+        'ok' => true,
+        'ride_id' => $docId,
+        'ride_code' => (string)($ride['rideCode'] ?? ''),
+        'driver_id' => $updates['driverUid'] ?? ($ride['driverUid'] ?? ''),
+        'target_driver_id' => $updates['targetDriverUid'] ?? ($ride['targetDriverUid'] ?? ''),
+        'target_driver_name' => $updates['targetDriverName'] ?? ($ride['targetDriverName'] ?? ''),
+        'status' => $status,
+        'fare' => $updates['fare'] ?? ($ride['fare'] ?? 0),
+        'offered_fare' => $updates['offeredFare'] ?? ($ride['offeredFare'] ?? null),
+        'payment_method' => $updates['paymentMethod'] ?? ($ride['paymentMethod'] ?? ''),
+        'payment_label' => $updates['paymentLabel'] ?? ($ride['paymentLabel'] ?? ''),
+    ]);
+} catch (Throwable $exception) {
+    error_log('Firestore ride update failed: ' . $exception->getMessage());
+    fare_json(['ok' => false, 'error' => 'update_failed'], 500);
+}

@@ -1,0 +1,418 @@
+:root {
+  --purple: #9a48ff;
+  --pink: #f06aa5;
+  --ink: #2d1d3d;
+  --muted: #7f6e8e;
+  --card: #ffffff;
+  --border: #eadff4;
+  --bg: #f6f2fb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Manrope", "Segoe UI", Tahoma, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.help-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(90deg, var(--purple) 0%, var(--pink) 100%);
+  color: #fff;
+  border-radius: 0 0 18px 18px;
+  box-shadow: 0 10px 24px rgba(45, 20, 70, 0.12);
+}
+
+.header-label {
+  display: block;
+  font-size: 10px;
+  opacity: 0.85;
+}
+
+.help-header strong {
+  font-size: 16px;
+}
+
+.back-btn {
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #5a2a77;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  min-height: 28px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(78, 36, 118, 0.18);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.back-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(78, 36, 118, 0.22);
+}
+
+.help-shell {
+  width: min(960px, 92vw);
+  margin: 16px auto 40px;
+  display: grid;
+  gap: 16px;
+}
+
+.help-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 10px 24px rgba(45, 20, 70, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.help-card.highlight {
+  background: linear-gradient(135deg, rgba(154, 72, 255, 0.12), rgba(240, 106, 165, 0.12));
+  border-color: rgba(154, 72, 255, 0.2);
+}
+
+.help-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 16px 30px rgba(70, 28, 110, 0.16);
+  border-color: rgba(154, 72, 255, 0.35);
+}
+
+.help-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.help-card h2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.help-card-toggle {
+  width: 100%;
+  border: none;
+  background: transparent;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+}
+
+.help-card-title {
+  display: grid;
+  gap: 4px;
+}
+
+.icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(154, 72, 255, 0.12);
+  color: #7d43e8;
+  box-shadow: inset 0 0 0 1px rgba(154, 72, 255, 0.2);
+}
+
+.icon-wrap svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.icon-wrap.danger {
+  background: rgba(240, 84, 79, 0.12);
+  color: #e24a4a;
+  box-shadow: inset 0 0 0 1px rgba(240, 84, 79, 0.22);
+}
+
+.chevron {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #7d43e8;
+  background: rgba(154, 72, 255, 0.12);
+  transition: transform 0.2s ease;
+}
+
+.help-card-toggle[aria-expanded="true"] .chevron {
+  transform: rotate(45deg);
+}
+
+.help-card-content {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease, opacity 0.25s ease;
+}
+
+.help-card-content.is-open {
+  max-height: 480px;
+  opacity: 1;
+  margin-top: 12px;
+}
+
+.pill {
+  background: rgba(154, 72, 255, 0.14);
+  color: #7d43e8;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.pill.danger {
+  background: rgba(240, 84, 79, 0.14);
+  color: #e24a4a;
+}
+
+.help-card ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.info-grid {
+  display: grid;
+  gap: 10px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.info-grid strong {
+  display: block;
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.faq-list {
+  display: grid;
+  gap: 12px;
+}
+
+.faq-item {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: #fdfbff;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.faq-item strong {
+  display: block;
+  color: var(--ink);
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.lost-found-support-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  min-height: 190px;
+  padding: clamp(18px, 3vw, 26px);
+  background:
+    radial-gradient(circle at 90% 0%, rgba(240, 106, 165, 0.18), transparent 38%),
+    linear-gradient(135deg, #fff 0%, #fbf6ff 100%);
+  border-color: rgba(154, 72, 255, 0.2);
+  cursor: pointer;
+}
+
+.lost-found-support-card:focus-visible {
+  outline: 3px solid rgba(154, 72, 255, 0.3);
+  outline-offset: 3px;
+}
+
+.lost-found-support-icon {
+  display: grid;
+  place-items: center;
+  width: 66px;
+  height: 66px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  color: #fff;
+  box-shadow: 0 14px 28px rgba(128, 55, 204, 0.22);
+}
+
+.lost-found-support-icon svg {
+  width: 30px;
+  height: 30px;
+  fill: currentColor;
+}
+
+.lost-found-support-copy {
+  min-width: 0;
+}
+
+.lost-found-support-copy h2 {
+  margin: 8px 0 5px;
+  font-size: clamp(18px, 2.5vw, 24px);
+}
+
+.lost-found-support-copy > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.lost-found-support-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.lost-found-support-features span {
+  padding: 6px 9px;
+  border: 1px solid #e8dcf1;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.8);
+  color: #654878;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.lost-found-support-features span::before {
+  content: "\2713";
+  margin-right: 5px;
+  color: #8c3fda;
+}
+
+.lost-found-support-action {
+  display: grid;
+  justify-items: end;
+  gap: 12px;
+  min-width: 190px;
+}
+
+.lost-found-case-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  border-radius: 999px;
+  background: #f1e8f8;
+  color: #654a75;
+  padding: 6px 10px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.lost-found-case-status.has-active {
+  background: #fff0f8;
+  color: #bc3477;
+}
+
+.lost-found-case-status.is-loading {
+  color: transparent;
+  width: 138px;
+  background: linear-gradient(90deg, #eee5f4, #faf7fc, #eee5f4);
+  background-size: 200% 100%;
+  animation: helpLostFoundShimmer 1.15s infinite;
+}
+
+.lost-found-case-status.is-error {
+  background: #fff6e8;
+  color: #8b6024;
+}
+
+.lost-found-open-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  color: #fff;
+  padding: 0 18px;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 10px 22px rgba(133, 56, 207, 0.2);
+}
+
+.lost-found-open-button:focus-visible {
+  outline: 3px solid rgba(154, 72, 255, 0.28);
+  outline-offset: 3px;
+}
+
+@keyframes helpLostFoundShimmer {
+  to { background-position: -200% 0; }
+}
+
+@media (min-width: 768px) {
+  .help-shell {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .help-card.highlight {
+    grid-column: span 2;
+  }
+  .lost-found-support-card {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 767px) {
+  .lost-found-support-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .lost-found-support-action {
+    grid-column: 1 / -1;
+    justify-items: stretch;
+    min-width: 0;
+  }
+  .lost-found-case-status {
+    justify-content: center;
+    width: fit-content;
+  }
+}
+
+@media (max-width: 480px) {
+  .lost-found-support-card {
+    grid-template-columns: 1fr;
+    justify-items: start;
+    gap: 14px;
+  }
+  .lost-found-support-icon {
+    width: 58px;
+    height: 58px;
+  }
+  .lost-found-support-action {
+    width: 100%;
+  }
+  .lost-found-case-status {
+    justify-self: start;
+  }
+  .lost-found-open-button {
+    width: 100%;
+  }
+}

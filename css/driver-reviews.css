@@ -1,0 +1,192 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Manrope", "Segoe UI", Tahoma, sans-serif;
+  background: #f4effa;
+  color: #2d1d3d;
+  min-height: 100vh;
+}
+
+.reviews-header {
+  background: linear-gradient(90deg, #9a48ff 0%, #f06aa5 100%);
+  color: #fff;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 0 0 20px 20px;
+}
+
+.reviews-header span {
+  font-size: 11px;
+  opacity: 0.9;
+  display: block;
+}
+
+.reviews-header strong {
+  font-size: 14px;
+}
+
+.back-btn {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #5a2a77;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  min-height: 28px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(78, 36, 118, 0.18);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.back-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(78, 36, 118, 0.22);
+}
+
+.back-btn .back-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.back-btn .back-text {
+  font-size: 10px;
+  letter-spacing: 0.2px;
+}
+
+.reviews-main {
+  padding: 16px 18px 30px;
+  display: grid;
+  gap: 14px;
+}
+
+.summary-card {
+  background: #fff;
+  border: 1px solid #eadff4;
+  border-radius: 16px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  box-shadow: 0 12px 24px rgba(93, 45, 124, 0.08);
+}
+
+.summary-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.rating-badge {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: linear-gradient(120deg, #9a48ff 0%, #f06aa5 100%);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-weight: 700;
+}
+
+.rating-badge span {
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.star.filled {
+  color: #f2b94b;
+}
+
+.star.empty {
+  color: #d8c8ea;
+}
+
+.summary-card p {
+  font-size: 9px;
+  color: #7f6e8e;
+}
+
+.summary-metrics {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.summary-metrics span {
+  font-size: 9px;
+  color: #7a668d;
+  border: 1px solid #eadff4;
+  border-radius: 999px;
+  background: #fbf8ff;
+  padding: 4px 8px;
+}
+
+.summary-metrics strong {
+  color: #5d2d7c;
+}
+
+.reviews-list {
+  display: grid;
+  gap: 12px;
+}
+
+.review-filters,.distribution-card{background:#fff;border:1px solid rgba(154,72,255,.14);border-radius:20px;padding:14px;box-shadow:0 12px 28px rgba(112,53,178,.08)}
+.review-filters{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.review-filters label{font-weight:800;color:#5d347e}.review-filters select{flex:1;min-width:0;border:1px solid #dfd2eb;border-radius:14px;padding:11px;background:#fff;font:inherit;color:#28153b}
+.distribution-card{display:grid;gap:8px;margin-bottom:14px}.distribution-row{display:grid;grid-template-columns:34px 1fr 32px;align-items:center;gap:8px;font-size:12px}
+.distribution-track{height:8px;border-radius:99px;background:#eee5f7;overflow:hidden}.distribution-track span{display:block;height:100%;background:linear-gradient(90deg,#9a48ff,#f06aa5);border-radius:inherit}
+.review-badge{display:inline-flex;margin-top:8px;padding:7px 10px;border-radius:99px;background:#f3e8ff;color:#6c2bd9;font-size:12px;font-weight:800}.review-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;color:#7d6a91;font-size:11px}
+
+.review-item {
+  background: #fff;
+  border: 1px solid #eadff4;
+  border-radius: 14px;
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+  box-shadow: 0 10px 20px rgba(93, 45, 124, 0.06);
+}
+
+.review-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+}
+
+.review-rating-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+}
+
+.review-item p {
+  font-size: 9px;
+  color: #7f6e8e;
+}
+
+.review-time {
+  font-size: 8px;
+  color: #9a8aa9;
+}
+.driver-review-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.driver-review-tags span{padding:5px 9px;border-radius:999px;background:#f5eafd;color:#75418d;font-size:11px;font-weight:700}

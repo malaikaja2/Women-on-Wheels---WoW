@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#9a48ff">
+  <title>Driver Dashboard - Women on Wheels</title>
+  <link rel="stylesheet" href="css/driver-dashboard.css?v=20260729-logout1">
+  <link rel="stylesheet" href="css/driver-reviews.css?v=20260726-review1">
+  <link rel="stylesheet" href="css/driver-nav.css?v=20260727-five-nav1">
+  <link rel="stylesheet" href="css/passenger-chatbot.css?v=20260706-chatbot2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="js/wow-role-guard.js?v=20260902-auth-recovery2"></script>
+</head>
+<body class="driver-shell is-online" data-driver-page="home">
+  <header class="driver-hero">
+    <div class="hero-top">
+      <span class="driver-header-spacer" aria-hidden="true"></span>
+      <a class="brand" href="driver-dashboard.html" aria-label="Women on Wheels driver dashboard">
+        <span class="brand-logo-frame"><img src="images/logo.png" alt="Women on Wheels" class="brand-logo"></span>
+        <div>
+          <span>Women on Wheels</span>
+          <strong>Driver Dashboard</strong>
+        </div>
+      </a>
+      <div class="header-driver-greeting">
+        <span>Welcome back</span>
+        <strong id="headerDriverName">Driver</strong>
+      </div>
+      <section class="toggle-card header-availability" aria-label="Driver availability">
+        <div>
+          <span class="toggle-label">Availability</span>
+          <strong id="availabilityTitle">You are Online</strong>
+          <p id="availabilityCopy">Accepting nearby ride requests</p>
+        </div>
+        <div class="header-availability-state">
+          <span class="status-pill" id="availabilityPill">Online</span>
+          <span class="status-detail" id="availabilityDetail">Accepting requests</span>
+        </div>
+        <button class="toggle-btn" id="availabilityToggle" type="button" aria-pressed="true" aria-label="Change driver availability">
+          <span class="toggle-track"><span class="toggle-knob"></span></span>
+        </button>
+      </section>
+      <div class="hero-actions">
+        <button class="header-sos-btn" id="sosBtn" type="button">
+          <span class="sos-ring"></span>
+          <span><strong>SOS</strong><small>Active ride only</small></span>
+        </button>
+        <button class="icon-btn" id="notificationsBtn" type="button" aria-label="Open notifications">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2Zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2Z"></path></svg>
+          <span class="badge" id="notificationBadge">0</span>
+        </button>
+        <button class="icon-btn" id="driverLogoutBtn" type="button" aria-label="Logout">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17v-2h4V9h-4V7h6v10h-6ZM4 5h8V3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8v-2H4V5Zm14.59 6L16 8.41 17.41 7l5 5-5 5L16 15.59 18.59 13H8v-2h10.59Z"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="hero-grid legacy-hero-content" aria-hidden="true">
+      <section class="hero-copy">
+        <p class="eyebrow">Live operations</p>
+        <h1>Manage requests and live rides from one place.</h1>
+        <p class="hero-text">A realistic driver workspace built for fast dispatch, live tracking, and smooth passenger communication.</p>
+      </section>
+
+      <a class="sos-btn emergency-dial" href="tel:15"><span><strong>Call 15</strong><small>Emergency services</small></span></a>
+    </div>
+  </header>
+
+  <main class="driver-layout">
+    <section class="dashboard-pane is-active">
+      <section class="home-overview-grid" aria-label="Driver home overview">
+        <a class="section-card home-overview-card" href="#ridesSection"><span>Nearby requests</span><strong>Live ride queue</strong><small>Incoming and scheduled requests</small></a>
+        <a class="section-card home-overview-card" href="#activeSection"><span>Current status</span><strong>Ready for rides</strong><small>Open active ride controls</small></a>
+        <a class="section-card home-overview-card" href="driver-earnings.html"><span>Quick earnings</span><strong id="earnToday">Rs. 0</strong><small>Week: <span id="earnWeek">Rs. 0</span> · Total: <span id="earnTotal">Rs. 0</span></small></a>
+        <button class="section-card home-overview-card" id="homeAlertsBtn" type="button"><span>Important alerts</span><strong><span id="homeAlertCount">0</span> notifications</strong><small>Ride, chat, payment and safety updates</small></button>
+      </section>
+      <section class="section-card map-card" id="homeSection">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Live Map</p>
+            <h2>Current trip route</h2>
+          </div>
+          <div class="map-status" id="mapStatus">Waiting for active ride</div>
+        </div>
+        <div class="map-shell">
+          <div id="driverMap" class="driver-map" aria-label="Driver map"></div>
+          <div class="map-overlay">
+            <div class="map-chip">
+              <span>Driver ETA</span>
+              <strong id="driverEta">--</strong>
+            </div>
+            <div class="map-chip alt">
+              <span>Trip distance</span>
+              <strong id="driverDistance">--</strong>
+            </div>
+          </div>
+          <div class="driver-tracking-card" aria-live="polite">
+            <strong id="driverTrackingStatus">Waiting for active ride tracking.</strong>
+            <span id="driverPeerStatus">Pickup and destination will appear when a ride is active.</span>
+          </div>
+          <button id="driverTrackingRecenter" class="driver-map-recenter" type="button" aria-pressed="true">Follow</button>
+        </div>
+        <div class="route-summary">
+          <div>
+            <span class="route-label">Pickup</span>
+            <strong id="routePickup">No active ride</strong>
+          </div>
+          <div>
+            <span class="route-label">Drop-off</span>
+            <strong id="routeDrop">No active ride</strong>
+          </div>
+        </div>
+        <section class="sos-live" id="driverSosLive" hidden aria-hidden="true">
+          <div class="sos-live-head">
+            <strong>Active SOS Alerts</strong>
+            <span id="sosLiveCount">0 active</span>
+          </div>
+          <div class="sos-live-list" id="driverSosList">
+            <div class="sos-live-empty">No active SOS alerts.</div>
+          </div>
+        </section>
+      </section>
+
+      <section class="section-card scheduled-rides-card" id="scheduledRidesSection">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Upcoming Trips</p>
+            <h2>Scheduled rides</h2>
+          </div>
+          <span class="state-pill">Firebase Live</span>
+        </div>
+        <div class="driver-scheduled-list" id="driverScheduledList" aria-live="polite" hidden>
+          <div class="driver-scheduled-skeleton" aria-label="Loading scheduled rides">
+            <span class="scheduled-sk-head"></span>
+            <span class="scheduled-sk-route"></span>
+            <span class="scheduled-sk-meta"></span>
+            <span class="scheduled-sk-actions"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard-grid">
+        <section class="section-card requests-card" id="ridesSection">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">Incoming Requests</p>
+              <h2>Ride requests</h2>
+            </div>
+            <div class="live-dot" id="requestIndicator">Live</div>
+          </div>
+          <div class="empty-state" id="requestsEmpty">
+            <strong>No incoming ride requests</strong>
+            <p>Go online to receive new requests instantly.</p>
+          </div>
+          <div class="request-list" id="requestList" aria-live="polite"></div>
+          <div class="ride-alert-controls">
+            <small id="rideAlertsStatus">Ride requests appear automatically while you are online.</small>
+          </div>
+        </section>
+
+        <section class="section-card active-card" id="activeSection">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">Active Ride</p>
+              <h2>Ride control</h2>
+            </div>
+            <span class="state-pill" id="rideStatePill">Idle</span>
+          </div>
+          <div class="active-empty" id="activeEmpty">
+            <strong>No ride active</strong>
+            <p>Accept a request to unlock the passenger tools and live trip controls.</p>
+          </div>
+          <div class="active-panel is-hidden" id="activePanel">
+            <div class="passenger-card">
+              <div class="passenger-avatar" id="passengerAvatar">P</div>
+              <div>
+                <strong id="passengerName">Passenger</strong>
+                <span id="passengerPhone">Private in-app contact</span>
+              </div>
+            </div>
+
+            <div class="trip-meta">
+              <div>
+                <span>Ride code</span>
+                <strong id="rideCode">WOW-000</strong>
+              </div>
+              <div>
+                <span>Status</span>
+                <strong id="rideStatus">Accepted</strong>
+              </div>
+              <div><span>Distance</span><strong id="activeDistance">--</strong></div>
+              <div><span>ETA</span><strong id="activeEta">--</strong></div>
+              <div><span>Fare</span><strong id="activeFare">Rs. 0</strong></div>
+              <div><span>Payment</span><strong id="activePayment">--</strong></div>
+            </div>
+
+            <div class="route-box">
+              <div class="route-row">
+                <span class="route-dot pickup"></span>
+                <div>
+                  <span>Pickup</span>
+                  <strong id="activePickup">--</strong>
+                </div>
+              </div>
+              <div class="route-row">
+                <span class="route-dot drop"></span>
+                <div>
+                  <span>Drop-off</span>
+                  <strong id="activeDrop">--</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="status-banner" id="statusBanner">Waiting for pickup confirmation.</div>
+
+            <div class="action-grid">
+              <a class="primary-btn button-link" id="navigateRideBtn" href="driver-ride.html">Navigate</a>
+              <button class="primary-btn" id="startRideBtn" type="button" disabled>Start Ride</button>
+              <button class="outline-btn" id="endRideBtn" type="button" disabled>End Ride</button>
+            </div>
+
+            <div class="contact-grid">
+              <button class="ghost-btn" id="chatBtn" type="button" disabled>Chat</button>
+              <button class="ghost-btn" id="callBtn" type="button" disabled>Call</button>
+            </div>
+          </div>
+        </section>
+
+      </section>
+
+      <section class="section-card recent-notifications-card">
+        <div class="section-head">
+          <div><p class="section-kicker">Updates</p><h2>Recent notifications</h2></div>
+          <button class="outline-btn compact-btn" id="viewAllNotificationsBtn" type="button">View all</button>
+        </div>
+        <div class="recent-notifications-list" id="recentNotificationsList">
+          <div class="compact-empty">No important notifications yet.</div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Driver navigation">
+    <a class="nav-item active" href="driver-dashboard.html" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"></path></svg>
+      <span>Dashboard</span>
+    </a>
+    <a class="nav-item" href="driver-history.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm1 5h-2v6l5 3 .9-1.5-3.9-2.3Z"></path></svg>
+      <span>History</span>
+    </a>
+    <a class="nav-item" href="driver-earnings.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 9 9 0 0 0-9-9Zm1 14.5h-2v-1h-2v-2h2v-1h-2v-2h2v-1h2v1h2v2h-2v1h2v2h-2Z"></path></svg>
+      <span>Earnings</span>
+    </a>
+    <a class="nav-item" href="driver-help.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 15a1 1 0 1 1 1-1 1 1 0 0 1-1 1Zm2.2-7.4-.7.6a2.7 2.7 0 0 0-.9 2.1v.2h-1.8v-.4a3.8 3.8 0 0 1 1.3-2.9l.9-.8a1.8 1.8 0 1 0-3.1-1.3H7.9a3.6 3.6 0 1 1 6.3 2.5Z"></path></svg>
+      <span>Help</span>
+    </a>
+    <a class="nav-item" href="driver-profile.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.42 0-8 2-8 4v2h16v-2c0-2-3.58-4-8-4Z"></path></svg>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+  <div class="modal-layer" id="modalLayer" aria-hidden="true"></div>
+
+  <section class="side-panel" id="notificationsPanel" aria-hidden="true">
+    <div class="panel-head">
+      <strong>Notifications</strong>
+      <button class="close-btn" type="button" data-close="notifications">×</button>
+    </div>
+    <div class="panel-body" id="notificationsList"></div>
+  </section>
+
+  <section class="side-panel" id="chatPanel" aria-hidden="true">
+    <div class="panel-head">
+      <strong>Chat with Passenger</strong>
+      <button class="close-btn" type="button" data-close="chat">×</button>
+    </div>
+    <div class="panel-body chat-body">
+      <div class="chat-context" id="chatContext">
+        <div class="chat-passenger">
+          <div class="chat-passenger-avatar" id="chatPassengerAvatar">P</div>
+          <div>
+            <strong id="chatPassengerName">Passenger</strong>
+            <span id="chatRideCode">Ride --</span>
+            <span id="chatRideStatus">Status: --</span>
+          </div>
+        </div>
+        <div class="chat-route-meta">
+          <div>
+            <span>Pickup</span>
+            <strong id="chatPickup">--</strong>
+          </div>
+          <div>
+            <span>Drop-off</span>
+            <strong id="chatDrop">--</strong>
+          </div>
+        </div>
+      </div>
+      <div class="chat-thread" id="chatThread"></div>
+      <div class="chat-compose">
+        <input type="text" id="chatInput" placeholder="Type a message" autocomplete="off">
+        <button class="primary-btn" id="sendChatBtn" type="button">Send</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="side-panel" id="callPanel" aria-hidden="true">
+    <div class="panel-head">
+      <strong>Calling Passenger</strong>
+      <button class="close-btn" type="button" data-close="call">×</button>
+    </div>
+    <div class="panel-body call-body">
+      <div class="call-avatar" id="callAvatar">P</div>
+      <strong id="callName">Passenger</strong>
+      <span id="callSubtitle">Connecting...</span>
+      <div class="call-timer" id="callTimer">00:00</div>
+      <div class="call-actions">
+        <button class="primary-btn" id="answerDashboardCallBtn" type="button" hidden>Accept</button>
+        <button class="outline-btn" id="declineDashboardCallBtn" type="button" hidden>Decline</button>
+        <button class="outline-btn" id="muteDashboardCallBtn" type="button">Mute</button>
+      </div>
+      <button class="outline-btn" id="endCallBtn" type="button">End Call</button>
+    </div>
+  </section>
+
+  <section class="modal-card" id="sosModal" aria-hidden="true">
+    <div class="panel-head">
+      <strong>Emergency SOS</strong>
+      <button class="close-btn" type="button" data-close="sos">×</button>
+    </div>
+    <div class="panel-body">
+      <p>Send a driver safety alert? This works only during an active ride and notifies driver support monitoring.</p>
+      <div class="modal-actions">
+        <button class="outline-btn" type="button" data-close="sos">Cancel</button>
+        <button class="primary-btn" id="confirmSosBtn" type="button">Send SOS</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="modal-card" id="completeModal" aria-hidden="true">
+    <div class="panel-head">
+      <strong>Ride Completed Successfully</strong>
+      <button class="close-btn" type="button" data-close="complete">Ã—</button>
+    </div>
+    <div class="panel-body">
+      <p>Your trip has been marked completed and synced. You can accept the next request now.</p>
+      <div class="modal-actions">
+        <button class="primary-btn" id="completeDoneBtn" type="button" data-close="complete">OK</button>
+      </div>
+    </div>
+  </section>
+
+  <script src="js/driver-nav.js?v=20260730-driver-identity2"></script>
+  <script src="js/wow-realtime.js?v=20260420-1"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="js/wow-firestore.js?v=20260902-auth-recovery2"></script>
+<script src="js/wow-ride-chat.js?v=20260728-chat6"></script>
+<script src="js/wow-ride-call.js?v=20260726-private-voip1"></script>
+<script src="js/wow-vehicle.js?v=20260713-vehicle2"></script>
+<script src="js/wow-live-tracking.js?v=20260916-driver-earnings-ledger1"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js"></script>
+<script src="php/mapbox_config.php"></script>
+<script src="js/mapbox-services.js?v=20260728-detail1"></script>
+  <script src="js/driver-dashboard.js?v=20260916-driver-earnings-sync1"></script>
+<script src="js/passenger-chatbot.js?v=20260730-chatbot-fix1"></script>
+</body>
+</html>

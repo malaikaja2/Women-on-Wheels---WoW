@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#9a48ff">
+  <title>Earnings - Women on Wheels</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/driver-nav.css?v=20260727-five-nav1">
+  <script src="js/wow-role-guard.js?v=20260705-1"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:"Manrope","Segoe UI",Tahoma,sans-serif;
+      min-height:100vh;
+      background:
+        radial-gradient(circle at top left, rgba(240,106,165,.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(154,72,255,.16), transparent 24%),
+        linear-gradient(180deg,#fff8fe 0%,#f7f1fb 48%,#f2ebfa 100%);
+      color:#28153b;
+      padding:16px 16px 110px;
+    }
+    .shell{width:min(1100px,100%);margin:0 auto;display:grid;gap:16px}
+    .hero{
+      background:linear-gradient(135deg,#9a48ff 0%,#f06aa5 100%);
+      color:#fff;border-radius:28px;padding:18px 20px;
+      box-shadow:0 18px 40px rgba(112,53,178,.14)
+    }
+    .hero-copy{margin-top:12px;max-width:62ch;line-height:1.6;color:rgba(255,255,255,.9);font-size:13px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .back-btn,.link-btn,.primary-btn{
+      border:none;border-radius:16px;cursor:pointer;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;justify-content:center
+    }
+    .link-btn{
+      background:#fff;color:#9a48ff;padding:12px 14px
+    }
+    .primary-btn{
+      background:linear-gradient(135deg,#9a48ff 0%,#f06aa5 100%);
+      color:#fff;padding:12px 16px;
+      box-shadow:0 12px 20px rgba(154,72,255,.22)
+    }
+    .hero strong{display:block;font-size:26px;margin-top:2px}
+    .hero span{display:block;opacity:.88;font-size:12px}
+    .grid{display:grid;gap:14px}
+    .stats-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .card{
+      background:rgba(255,255,255,.92);
+      border:1px solid rgba(154,72,255,.14);
+      border-radius:24px;
+      box-shadow:0 18px 40px rgba(112,53,178,.08);
+      padding:18px
+    }
+    .metric span{display:block;color:#7d6a91;font-size:12px}
+    .metric strong{display:block;margin-top:8px;font-size:26px;color:#9a48ff}
+    .metric.cash strong{color:#ef6b92}
+    .metric.online strong{color:#7b43ff}
+    .metric.wallet strong{color:#f06aa5}
+    .section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+    .section-head h2{font-size:20px}
+    .section-head p{color:#7d6a91;font-size:13px;margin-top:4px;line-height:1.5}
+    .wallet-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .balance-pill{
+      padding:14px 16px;border-radius:18px;background:linear-gradient(135deg,rgba(154,72,255,.08),rgba(240,106,165,.08));
+      border:1px solid rgba(154,72,255,.1);min-width:min(100%,320px)
+    }
+    .balance-pill span{display:block;color:#7d6a91;font-size:12px}
+    .balance-pill strong{display:block;margin-top:6px;font-size:24px;color:#28153b}
+    .muted-note{margin-top:12px;color:#7d6a91;font-size:13px;line-height:1.5}
+    .history-list{display:grid;gap:12px}
+    .history-item{
+      padding:14px 16px;border-radius:18px;background:#fff;border:1px solid rgba(154,72,255,.1)
+    }
+    .history-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .history-top strong{font-size:15px}
+    .history-top span{color:#7d6a91;font-size:13px}
+    .history-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:8px;color:#7d6a91;font-size:13px}
+    .history-meta strong{display:block;color:#28153b;margin-top:4px}
+    .badge{
+      display:inline-flex;align-items:center;padding:7px 10px;border-radius:999px;font-size:11px;font-weight:800
+    }
+    .badge.cash{background:rgba(240,106,165,.12);color:#d64a85}
+    .badge.online{background:rgba(154,72,255,.12);color:#7d43e8}
+    .badge.withdraw{background:rgba(48,205,139,.12);color:#149e69}
+    .wallet-actions{display:flex;gap:10px;flex-wrap:wrap}
+    .empty-state{
+      padding:18px;border-radius:18px;border:1px dashed rgba(154,72,255,.18);
+      background:rgba(255,255,255,.68);color:#7d6a91
+    }
+    .modal-layer{
+      position:fixed;inset:0;background:rgba(25,12,36,.45);backdrop-filter:blur(4px);
+      opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:60
+    }
+    .modal-layer.is-open{opacity:1;pointer-events:auto}
+    .withdraw-modal{
+      position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.98);
+      width:min(420px,calc(100vw - 24px));background:#fff;border:1px solid rgba(154,72,255,.14);
+      border-radius:24px;box-shadow:0 24px 60px rgba(33,13,47,.24);opacity:0;pointer-events:none;
+      transition:opacity .2s ease, transform .2s ease;z-index:65;overflow:hidden
+    }
+    .withdraw-modal.is-open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+    .modal-head{padding:16px 18px;border-bottom:1px solid rgba(154,72,255,.08);display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .modal-body{padding:16px 18px 18px;display:grid;gap:12px}
+    .modal-body label{font-size:12px;color:#7d6a91}
+    .modal-body input{
+      width:100%;border:1px solid rgba(154,72,255,.14);border-radius:16px;padding:0 14px;min-height:50px;font:inherit
+    }
+    .modal-body input:focus{outline:2px solid rgba(154,72,255,.18);border-color:rgba(154,72,255,.24)}
+    .modal-row{display:flex;justify-content:space-between;gap:12px;color:#7d6a91;font-size:13px}
+    .modal-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:4px}
+    .outline-btn{
+      border-radius:16px;padding:12px 14px;min-height:48px;border:1px solid rgba(154,72,255,.22);
+      background:rgba(255,255,255,.82);color:#7d43e8;font-weight:800
+    }
+    .toast-stack{
+      position:fixed;right:18px;top:18px;display:grid;gap:10px;width:min(320px,calc(100vw - 36px));z-index:70
+    }
+    .toast{
+      padding:14px 15px;border-radius:18px;color:#fff;background:linear-gradient(135deg,#9a48ff 0%,#f06aa5 100%);
+      box-shadow:0 16px 30px rgba(154,72,255,.22);animation:toastIn .25s ease
+    }
+    .toast strong{display:block;font-size:14px}
+    .toast span{display:block;margin-top:4px;font-size:12px;opacity:.92;line-height:1.45}
+    @keyframes toastIn{
+      from{opacity:0;transform:translateY(-10px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+    @media(max-width:860px){.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:600px){
+      body{padding:12px 12px 110px}
+      .stats-grid{grid-template-columns:1fr}
+      .history-meta{grid-template-columns:1fr}
+      .wallet-row{align-items:stretch}
+      .wallet-actions{width:100%}
+      .wallet-actions .primary-btn,.wallet-actions .link-btn{flex:1}
+    }
+  </style>
+<link rel="stylesheet" href="css/passenger-chatbot.css?v=20260722-intent1">
+</head>
+<body data-driver-page="earnings">
+  <main class="shell">
+    <section class="hero">
+      <div class="row">
+        <button class="back-btn" type="button" data-driver-back data-fallback="driver-dashboard.html">
+          <span class="back-icon">&#8592;</span>
+          <span class="back-text">Back</span>
+        </button>
+        <div>
+          <span>Women on Wheels</span>
+          <strong>Earnings</strong>
+        </div>
+        <div class="wallet-actions">
+          <a class="link-btn" href="driver-history.html">Ride History</a>
+        </div>
+      </div>
+      <p class="hero-copy">Cash payments are tracked separately, while online payments go into your wallet until you withdraw them.</p>
+    </section>
+
+    <section class="grid stats-grid">
+      <article class="card metric cash">
+          <span>Today’s earnings</span>
+          <strong id="earnToday">Loading...</strong>
+      </article>
+      <article class="card metric online">
+          <span>Weekly earnings</span>
+          <strong id="earnWeek">Loading...</strong>
+      </article>
+      <article class="card metric wallet">
+          <span>Total earnings</span>
+          <strong id="earnTotal">Loading...</strong>
+      </article>
+      <article class="card metric">
+        <span>Completed rides</span>
+        <strong id="completedCount">...</strong>
+      </article>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>Completed ride income</h2>
+          <p>Calculated from completed Firebase rides only. Cancelled rides stay out of earnings.</p>
+        </div>
+        <div class="wallet-actions">
+          <a class="link-btn" href="driver-history.html">View History</a>
+          <a class="primary-btn" href="driver-dashboard.html">Dashboard</a>
+        </div>
+      </div>
+      <div class="wallet-row">
+        <div class="balance-pill">
+          <span>Completed ride count</span>
+          <strong id="completedRideCount">...</strong>
+        </div>
+      </div>
+      <div class="muted-note" id="walletNote">Waiting for Firebase earnings data...</div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>Recent earning records</h2>
+          <p>Latest completed rides that contributed to your earnings.</p>
+        </div>
+      </div>
+      <div class="history-list" id="earningsRideList"><div class="empty-state">Loading earnings...</div></div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div><h2>Passenger Feedback</h2><p>Ratings &amp; Reviews from completed rides.</p></div>
+        <div class="balance-pill"><span>Average Rating</span><strong id="averageRating">...</strong></div>
+      </div>
+      <div class="muted-note" id="ratingCount">Loading ratings...</div>
+      <div class="history-list" id="ratingsList"><div class="empty-state">Loading ratings...</div></div>
+    </section>
+  </main>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+
+  <div data-driver-nav-mount></div>
+  <script src="js/driver-nav.js?v=20260730-driver-identity2"></script>
+  <script type="application/x-disabled">
+    const money = n => "Rs. " + Number(n || 0).toLocaleString("en-PK");
+    const DASHBOARD_API = "php/get_driver_dashboard_data.php";
+
+    function toast(title, message) {
+      const stack = document.getElementById("toastStack");
+      const node = document.createElement("div");
+      node.className = "toast";
+      node.innerHTML = `<strong>${title}</strong><span>${message}</span>`;
+      stack.prepend(node);
+      setTimeout(() => {
+        node.style.opacity = "0";
+        node.style.transform = "translateY(-8px)";
+        setTimeout(() => node.remove(), 220);
+      }, 2600);
+    }
+
+    function paymentBadge(method) {
+      return method === "cash"
+        ? '<span class="badge cash">Cash</span>'
+        : '<span class="badge online">Online</span>';
+    }
+
+    async function syncEarningsFromDb() {
+      const query = new URLSearchParams({
+        role: "driver",
+        email: localStorage.getItem("wow_user_email") || "",
+        user_id: localStorage.getItem("wow_user_id") || ""
+      });
+      try {
+        const res = await fetch(`${DASHBOARD_API}?${query.toString()}`);
+        const data = await res.json();
+        if (!res.ok || !data || !data.ok) return;
+
+        const summaryDb = data.summary || {};
+        const today = Number(summaryDb.today || 0);
+        const week = Number(summaryDb.week || 0);
+        const month = Number(summaryDb.month || 0);
+        const total = Number(summaryDb.total || 0);
+        const completedCount = Number(summaryDb.completed_count || 0);
+        document.getElementById("cashCollected").textContent = money(today);
+        document.getElementById("onlineEarned").textContent = money(week);
+        document.getElementById("walletBalance").textContent = money(month);
+        document.getElementById("totalEarnings").textContent = money(total);
+        document.getElementById("availableBalance").textContent = String(completedCount);
+        document.getElementById("walletNote").textContent = `${completedCount} completed ride${completedCount === 1 ? "" : "s"} counted. Cancelled rides are excluded.`;
+
+        const rideList = document.getElementById("historyList");
+        const earningList = document.getElementById("withdrawalList");
+        const earningEmpty = document.getElementById("withdrawalEmpty");
+        rideList.innerHTML = "";
+        earningList.innerHTML = "";
+        const rows = (Array.isArray(data.history) ? data.history.slice().reverse() : [])
+          .filter((item) => String(item.status || "").toLowerCase() === "completed");
+        earningEmpty.style.display = rows.length ? "none" : "block";
+        rows.slice(0, 8).forEach((item) => {
+          const when = new Date(item.completed_at || item.created_at || Date.now()).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+          const paymentMethod = String(item.payment_method || item.paymentMethod || "online").toLowerCase();
+          const row = document.createElement("article");
+          row.className = "history-item";
+          row.innerHTML = `
+            <div class="history-top">
+              <strong>${item.passenger_name || "Passenger"}</strong>
+              <span>${when}</span>
+            </div>
+            <div class="history-meta">
+              <div><span>Fare</span><strong>${money(item.fare)}</strong></div>
+              <div><span>Distance</span><strong>${Number(item.distance_km || 0).toFixed(1)} km</strong></div>
+              <div><span>Payment</span><strong>${paymentBadge(paymentMethod)}</strong></div>
+            </div>`;
+          rideList.appendChild(row);
+          earningList.appendChild(row.cloneNode(true));
+        });
+        if (!rows.length) {
+          rideList.innerHTML = '<div class="empty-state">No earning records yet.</div>';
+        }
+      } catch {
+        document.getElementById("historyList").innerHTML = '<div class="empty-state">Unable to load Firebase earnings right now.</div>';
+      }
+    }
+    syncEarningsFromDb();
+    setInterval(syncEarningsFromDb, 4000);
+    window.addEventListener("storage", (event) => {
+      if (!event) return;
+      if (event.key === "wow_ride_status" || event.key === "wow_live_ride_requests" || event.key === "wow_realtime_event") {
+        syncEarningsFromDb();
+      }
+    });
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="js/wow-firestore.js?v=20260730-auth-uid1"></script>
+  <script src="js/wow-financial.js?v=20260729-financial1"></script>
+  <script src="js/driver-finance.js?v=20260916-driver-earnings-sync1"></script>
+<script src="js/passenger-chatbot.js?v=20260730-chatbot-fix1"></script>
+</body>
+</html>

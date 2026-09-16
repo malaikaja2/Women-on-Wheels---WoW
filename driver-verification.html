@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#9a48ff">
+  <title>Driver Verification - Women on Wheels</title>
+  <link rel="stylesheet" href="css/driver-verification.css">
+  <link rel="stylesheet" href="css/passenger-chatbot.css?v=20260722-intent1">
+</head>
+<body>
+  <main class="verification-card">
+    <img src="images/logo.png" alt="Women on Wheels">
+    <div class="status-icon" id="statusIcon">...</div>
+    <h1 id="statusTitle">Checking verification</h1>
+    <span class="badge" id="statusBadge">Loading</span>
+    <p id="statusMessage">Loading the latest status securely from Firestore...</p>
+    <section id="reasonBox" hidden>
+      <strong>Rejection reason</strong>
+      <p id="reasonText"></p>
+    </section>
+    <section id="resubmitBox" class="resubmit-box" hidden>
+      <strong>Upload corrected documents</strong>
+      <form id="resubmitForm" novalidate>
+        <label>CNIC front<input id="resubmitCnicFront" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"></label>
+        <label>CNIC back<input id="resubmitCnicBack" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"></label>
+        <label>Driving licence<input id="resubmitLicence" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"></label>
+        <label>Profile photo<input id="resubmitProfile" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"></label>
+        <p id="resubmitStatus" class="upload-note"></p>
+        <button id="resubmitBtn" type="submit">Submit Corrected Documents</button>
+      </form>
+    </section>
+    <p class="live-note">This status updates automatically when the admin reviews your application.</p>
+    <button id="logoutBtn" type="button">Logout</button>
+  </main>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="js/wow-firestore.js?v=20260902-auth-recovery2"></script>
+  <script src="js/wow-image-upload.js?v=20260914-secure-images1"></script>
+  <script src="js/driver-verification.js?v=20260914-secure-images1"></script>
+  <script src="js/passenger-chatbot.js?v=20260730-chatbot-fix1"></script>
+</body>
+</html>

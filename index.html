@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Women on Wheels</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="logo">
+            <img src="images/logo.png" alt="Logo">
+        </div>
+
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="why.html">Why Women on Wheels</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="vehicles.html" class="active">Vehicles</a></li>
+            <li><a href="contact.html" class="active">Contact Us</a></li>
+        </ul>
+
+        <div class="auth-buttons">
+            <a href="login.html" class="book-btn" id="bookRideBtn">Book a Ride</a>
+            <a href="login.html" class="login-btn" id="loginBtn">Log In</a>
+            <a href="signup.html" class="signup-btn" id="signupBtn">Sign Up</a>
+        </div>
+    </nav>
+
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+    <div class="hero-content">
+        <h1>Drive Your Freedom</h1>
+        <h2 class="slogan">By Women, For Women
+            </h2>
+
+        <p>
+            Women on Wheels is a secure and empowering mobility platform 
+            created exclusively for women. We believe every woman deserves 
+            safe, reliable, and independent transportation.
+        </p>
+
+       
+    </div>
+
+    <div class="hero-image">
+        <img src="images/hero.png" alt="Woman Driving">
+    </div>
+</section>
+
+
+    <!-- FOOTER -->
+    <footer>
+        <p>© 2026 Women on Wheels | All Rights Reserved</p>
+    </footer>
+
+    <script>
+      (function () {
+        const bookBtn = document.getElementById('bookRideBtn');
+        const loginBtn = document.getElementById('loginBtn');
+        const signupBtn = document.getElementById('signupBtn');
+        const REDIRECT_KEY = 'wow_post_login_redirect';
+        const SOURCE_KEY = 'wow_post_login_source';
+        const TIME_KEY = 'wow_post_login_set_at';
+
+        function clearBookIntent() {
+          localStorage.removeItem(REDIRECT_KEY);
+          localStorage.removeItem(SOURCE_KEY);
+          localStorage.removeItem(TIME_KEY);
+        }
+
+        function isLoggedIn() {
+          return localStorage.getItem('wow_logged_in') === 'true' && !!localStorage.getItem('wow_user_role');
+        }
+
+        if (bookBtn) {
+          bookBtn.addEventListener('click', function (event) {
+            event.preventDefault();
+            if (isLoggedIn()) {
+              const role = (localStorage.getItem('wow_user_role') || 'passenger').toLowerCase();
+              window.location.href = role === 'driver' ? 'driver-dashboard.html' : 'dashboard.html';
+              return;
+            }
+            localStorage.setItem(REDIRECT_KEY, 'dashboard.html');
+            localStorage.setItem(SOURCE_KEY, 'book_ride');
+            localStorage.setItem(TIME_KEY, String(Date.now()));
+            window.location.href = 'login.html';
+          });
+        }
+
+        if (loginBtn) loginBtn.addEventListener('click', clearBookIntent);
+        if (signupBtn) signupBtn.addEventListener('click', clearBookIntent);
+      })();
+    </script>
+</body>
+</html>
+

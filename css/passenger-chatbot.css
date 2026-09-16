@@ -1,0 +1,407 @@
+.wow-chatbot-fab {
+  position: fixed;
+  right: 18px;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  z-index: 2600;
+  width: 58px;
+  height: 58px;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #ff5fa2, #8e44ad);
+  box-shadow: 0 18px 36px rgba(142, 68, 173, .28);
+  cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease, opacity .16s ease;
+}
+
+.wow-chatbot-fab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 44px rgba(142, 68, 173, .34);
+}
+
+.wow-chatbot-fab svg,
+.wow-chatbot-send svg,
+.wow-chatbot-close svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.wow-chatbot-overlay,
+.bot-panel.is-open + .wow-chatbot-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2580 !important;
+  background: rgba(40, 20, 48, .26) !important;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
+}
+
+.wow-chatbot-overlay.is-open {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.wow-chatbot-panel {
+  position: fixed;
+  right: 18px;
+  bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  z-index: 2601;
+  width: min(390px, calc(100vw - 24px));
+  max-height: min(720px, calc(100vh - 120px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 22px;
+  background: #fff;
+  border: 1px solid rgba(154, 72, 255, .14);
+  box-shadow: 0 24px 60px rgba(51, 18, 69, .24);
+  opacity: 0;
+  transform: translateY(12px) scale(.98);
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.wow-chatbot-panel.is-open,
+.bot-panel.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.bot-panel.wow-chatbot-normalized {
+  position: fixed !important;
+  inset: auto 18px calc(92px + env(safe-area-inset-bottom, 0px)) auto !important;
+  z-index: 2601 !important;
+  width: min(390px, calc(100vw - 24px)) !important;
+  max-height: min(720px, calc(100vh - 120px)) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(12px) scale(.98) !important;
+  transition: opacity .18s ease, transform .18s ease !important;
+}
+
+.bot-panel.wow-chatbot-normalized.is-open {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateY(0) scale(1) !important;
+}
+
+.bot-panel.wow-chatbot-normalized .bot-window {
+  width: 100% !important;
+  max-height: inherit !important;
+  border-radius: 22px !important;
+}
+
+.wow-chatbot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  color: #fff;
+  background: linear-gradient(135deg, #ff5fa2, #8e44ad);
+}
+
+.bot-header {
+  color: #fff !important;
+  background: linear-gradient(135deg, #ff5fa2, #8e44ad) !important;
+}
+
+.bot-header .bot-title strong,
+.bot-header .bot-subtitle,
+.bot-header .assistant-mark {
+  color: #fff !important;
+}
+
+.wow-chatbot-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.wow-chatbot-avatar,
+.assistant-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, .18);
+  color: #fff;
+}
+
+.wow-chatbot-title strong,
+.bot-title strong {
+  display: block;
+  font-size: 15px;
+}
+
+.wow-chatbot-title span,
+.bot-subtitle {
+  display: block;
+  font-size: 12px;
+  opacity: .86;
+}
+
+.wow-chatbot-close {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  background: rgba(255, 255, 255, .16);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.bot-close-btn,
+.wow-chatbot-close {
+  color: #fff !important;
+  background: rgba(255, 255, 255, .22) !important;
+  border: 1px solid rgba(255, 255, 255, .42) !important;
+  box-shadow: 0 8px 18px rgba(66, 25, 86, .18);
+}
+
+.bot-close-btn:hover,
+.wow-chatbot-close:hover {
+  background: rgba(255, 255, 255, .34) !important;
+}
+
+.wow-chatbot-head-actions{display:flex;align-items:center;gap:4px}
+.wow-chatbot-reset{width:38px;height:38px;border:0;border-radius:12px;background:rgba(255,255,255,.16);color:#fff;font-size:22px;cursor:pointer}
+.wow-chatbot-reset:hover,.wow-chatbot-reset:focus-visible{background:rgba(255,255,255,.27);outline:2px solid rgba(255,255,255,.75);outline-offset:2px}
+.wow-chatbot-retry{display:block;margin-top:8px;border:0;border-radius:999px;padding:7px 12px;background:#fff;color:#7d2fba;font-weight:800;cursor:pointer}
+.wow-chatbot-actions{display:flex;flex-wrap:wrap;gap:8px;margin:0 14px 12px}
+.wow-chatbot-action{display:inline-flex;align-items:center;min-height:38px;padding:8px 12px;border:1px solid #dfc9f4;border-radius:999px;background:#fff;color:#762caf;text-decoration:none;font-size:12px;font-weight:800}
+.wow-chatbot-action:hover,.wow-chatbot-action:focus-visible{background:#f7efff;outline:2px solid rgba(146,62,231,.2);outline-offset:2px}
+body.wow-chatbot-open{overflow:hidden}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+
+.bot-close-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  fill: none !important;
+}
+
+.wow-chatbot-body,
+.bot-body {
+  flex: 1;
+  min-height: 260px;
+  overflow-y: auto;
+  padding: 14px;
+  background: linear-gradient(180deg, #fff, #fff7fc);
+}
+
+.wow-chatbot-scroll {
+  scroll-behavior: smooth;
+}
+
+.wow-chatbot-msg,
+.bot-bubble {
+  width: fit-content;
+  max-width: 86%;
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
+.wow-chatbot-msg.bot,
+.bot-bubble.bot {
+  color: #4c315f;
+  background: #f5ebff;
+  border-bottom-left-radius: 6px;
+}
+
+.wow-chatbot-msg.user,
+.bot-bubble.user {
+  margin-left: auto;
+  color: #fff;
+  background: linear-gradient(135deg, #ff5fa2, #8e44ad);
+  border-bottom-right-radius: 6px;
+}
+
+.wow-chatbot-quick,
+.bot-quick {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 14px;
+  background: #fff;
+  border-top: 1px solid #f0e4f8;
+}
+
+.wow-chatbot-chip,
+.bot-quick .quick-chip {
+  flex: 0 0 auto;
+  border: 1px solid #ead7f8;
+  border-radius: 999px;
+  padding: 8px 10px;
+  color: #8e44ad;
+  background: #fff7fc;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.wow-chatbot-input,
+.bot-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px 14px;
+  background: #fff;
+  border-top: 1px solid #f0e4f8;
+}
+
+.bot-input {
+  grid-template-columns: minmax(0, 1fr) auto auto !important;
+}
+
+.wow-chatbot-input input,
+.bot-input input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #ead7f8;
+  border-radius: 999px;
+  padding: 11px 13px;
+  font-size: 13px;
+  outline: none;
+}
+
+.wow-chatbot-input input:focus,
+.bot-input input:focus {
+  border-color: #c577e8;
+  box-shadow: 0 0 0 3px rgba(142, 68, 173, .12);
+}
+
+.wow-chatbot-send,
+.send-icon {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #ff5fa2, #8e44ad);
+  cursor: pointer;
+}
+
+.send-icon {
+  border-radius: 50% !important;
+}
+
+.wow-chatbot-send:disabled,
+.send-icon:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.wow-chatbot-typing span,
+.typing-dots span {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: #b86be0;
+  animation: wowChatDot .95s infinite ease-in-out;
+}
+
+.wow-chatbot-typing span:nth-child(2),
+.typing-dots span:nth-child(2) { animation-delay: .14s; }
+.wow-chatbot-typing span:nth-child(3),
+.typing-dots span:nth-child(3) { animation-delay: .28s; }
+
+@keyframes wowChatDot {
+  0%, 80%, 100% { transform: translateY(0); opacity: .45; }
+  40% { transform: translateY(-4px); opacity: 1; }
+}
+
+@media (max-width: 720px) {
+  .wow-chatbot-fab {
+    right: 14px;
+    bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  }
+  .wow-chatbot-panel,
+  .bot-panel.wow-chatbot-normalized {
+    right: 8px;
+    left: 8px;
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+    width: auto;
+    max-height: calc(100vh - 100px);
+    border-radius: 18px;
+  }
+  .bot-panel.wow-chatbot-normalized .bot-window {
+    border-radius: 18px !important;
+  }
+  .bot-input {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+  }
+  .bot-cancel-btn {
+    display: none;
+  }
+}
+
+@media (min-width: 721px) {
+  body[data-driver-page] .wow-chatbot-fab,
+  body.driver-shell .wow-chatbot-fab {
+    bottom: 104px;
+  }
+}
+/* Shared passenger/driver assistant enhancements. */
+.wow-chatbot-input textarea {
+  flex: 1;
+  min-height: 42px;
+  max-height: 110px;
+  resize: vertical;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  padding: 10px 4px;
+}
+.wow-chatbot-time {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  opacity: .65;
+}
+.wow-chatbot-minimize {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 24px;
+  cursor: pointer;
+}
+.wow-chatbot-fab.has-unread::after {
+  content: attr(data-unread);
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: #ef2a5f;
+  font: 700 11px/1 sans-serif;
+  box-shadow: 0 2px 8px #0003;
+}

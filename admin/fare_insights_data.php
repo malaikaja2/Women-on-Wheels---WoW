@@ -1,0 +1,62 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__.'/auth.php';
+require_once __DIR__.'/db.php';
+admin_require_auth();
+date_default_timezone_set('Asia/Karachi');
+
+function fi_json(array $value,int $code=200):never{http_response_code($code);header('Content-Type: application/json; charset=utf-8');echo json_encode($value);exit;}
+function fi_norm($value):string{return strtolower(trim((string)$value));}
+function fi_text(array $data,array $keys,string $fallback=''):string{foreach($keys as$key){$value=$data[$key]??null;if(is_scalar($value)&&trim((string)$value)!=='')return trim((string)$value);}return $fallback;}
+function fi_money(array $data,array $keys):?float{foreach($keys as$key)if(isset($data[$key])&&is_numeric($data[$key])&&(float)$data[$key]>0)return round((float)$data[$key],2);return null;}
+function fi_date($value):string{return wow_timestamp_to_string($value??'');}
+function fi_bool($value):bool{return filter_var($value,FILTER_VALIDATE_BOOLEAN)||$value===1||$value==='1';}
+function fi_real(array $ride):bool{return !fi_bool($ride['isDemo']??false)&&!fi_bool($ride['isTest']??false)&&!fi_bool($ride['isDeleted']??$ride['deleted']??false);}
+function fi_key(array $ride):string{return fi_text($ride,['rideId','bookingId','requestId','uid']);}
+function fi_group(string $status):string{if(in_array($status,['completed','ride_completed','finished','success','successful'],true))return 'completed';if(str_contains($status,'cancel')||str_contains($status,'reject')||str_contains($status,'declin')||str_contains($status,'expire'))return 'cancelled';if(in_array($status,['started','ride_started','in_progress','ongoing','active','driver_arriving','arrived'],true))return 'active';if(in_array($status,['accepted','assigned','driver_assigned','driver_selected'],true))return 'accepted';return 'waiting';}
+function fi_type(array $ride):string{$type=fi_norm($ride['rideType']??$ride['bookingType']??'');if(fi_bool($ride['isCarpool']??false)||!empty($ride['carpool'])||in_array($type,['carpool','shared','shared_ride'],true))return 'carpool';if(fi_bool($ride['isScheduled']??false)||isset($ride['scheduledAt'])||str_contains($type,'sched'))return 'scheduled';return 'instant';}
+function fi_source($value):string{$source=fi_norm($value);return match($source){'passenger_app','passenger_mobile','mobile_app','android_passenger'=>'passenger_app','passenger_website','website_passenger','passenger_web','web'=>'passenger_website','driver_app','driver_mobile','android_driver'=>'driver_app','driver_website','website_driver','driver_web'=>'driver_website',default=>'unknown'};}
+function fi_source_label(string $source):string{return match($source){'passenger_app'=>'Passenger Mobile App','passenger_website'=>'Passenger Website','driver_app'=>'Driver Mobile App','driver_website'=>'Driver Website',default=>'Source unavailable'};}
+function fi_profile(array $profile,string $fallback):array{return ['name'=>fi_text($profile,['fullName','name'],$fallback),'email'=>fi_text($profile,['email']),'phone'=>fi_text($profile,['phone','phoneNumber'])];}
+
+function fi_row(array $ride,array $passengers,array $drivers,array $payments):array{
+    $documentId=fi_text($ride,['uid']);$rideId=fi_key($ride)?:$documentId;
+    $passengerId=fi_text($ride,['passengerId','passengerUid','userId']);$driverId=fi_text($ride,['assignedDriverId','driverId','driverUid']);
+    $status=fi_norm($ride['status']??$ride['rideStatus']??$ride['bookingStatus']??'');$group=fi_group($status);$type=fi_type($ride);
+    $estimated=fi_money($ride,['estimatedFare','systemFare','aiFare','suggestedFare']);
+    $offer=fi_money($ride,['passengerOffer','passengerOfferFare','passengerOfferPrice','offeredFare','offerPrice']);
+    $counter=fi_money($ride,['driverCounterOffer','driverOffer','driverOfferFare','counterOffer','counterOfferFare']);
+    $accepted=fi_money($ride,['acceptedFare','agreedFare']);$final=fi_money($ride,['finalFare','totalFare']);
+    if($group==='completed'&&$final===null)$final=fi_money($ride,['fare']);
+    $original=fi_money($ride,['originalFare'])??($type==='carpool'?$estimated:null);
+    $shared=fi_money($ride,['sharedFare','carpoolFare','discountedFare']);if($type==='carpool'&&$shared===null)$shared=$final??$accepted;
+    $saving=$type==='carpool'&&$group==='completed'&&$original!==null&&$shared!==null&&$original>=$shared?round($original-$shared,2):null;
+    $difference=$final!==null&&$estimated!==null?round($final-$estimated,2):null;
+    $comparison=$difference===null?'missing':(abs($difference)<.01?'matched':($difference>0?'above':'below'));if($saving!==null&&$saving>0)$comparison='saving';
+    $payment=$payments[$rideId]??$payments[$documentId]??[];$gross=$final;
+    $commission=fi_money($payment,['adminCommission','platformCommission'])??fi_money($ride,['adminCommission','platformCommission']);
+    $driverShare=fi_money($payment,['driverEarning','driverShare'])??fi_money($ride,['driverEarning','driverShare']);
+    if($gross!==null){$commission??=round($gross*.30,2);$driverShare??=round($gross-$commission,2);}
+    $createdSource=fi_source($ride['createdFrom']??$ride['bookingSource']??$ride['sourcePlatform']??$ride['source']??$ride['platform']??'');
+    if($createdSource==='unknown'&&fi_text($ride,['_collection'])==='rideRequests')$createdSource='passenger_app';
+    $updatedSource=fi_source($ride['lastUpdatedFrom']??$ride['fareUpdatedFrom']??$ride['updatedFrom']??'');
+    return ['id'=>$documentId?:$rideId,'ride_id'=>$rideId,'ride_code'=>fi_text($ride,['rideCode','bookingCode'],'Ride reference unavailable'),'passenger_id'=>$passengerId,'driver_id'=>$driverId,'passenger'=>fi_profile($passengers[$passengerId]??[],fi_text($ride,['passengerName'],'Passenger profile unavailable')),'driver'=>fi_profile($drivers[$driverId]??[],$driverId!==''?fi_text($ride,['driverName'],'Driver profile unavailable'):'Driver not assigned'),'pickup'=>fi_text($ride,['pickupAddress','pickupLocation','pickup'],'Pickup unavailable'),'dropoff'=>fi_text($ride,['destinationAddress','dropoffAddress','dropoffLocation','destination','dropoff'],'Drop-off unavailable'),'distance_km'=>fi_money($ride,['distanceKm','totalDistanceKm','distance']),'ride_type'=>$type,'raw_status'=>$status,'status_group'=>$group,'status_label'=>match($group){'waiting'=>'Waiting','accepted'=>'Accepted','active'=>'In Progress','completed'=>'Completed',default=>'Cancelled'},'estimated_fare'=>$estimated,'passenger_offer'=>$offer,'driver_counter_offer'=>$counter,'accepted_fare'=>$accepted,'final_fare'=>$final,'fare_difference'=>$difference,'comparison'=>$comparison,'original_fare'=>$original,'shared_fare'=>$shared,'carpool_saving'=>$saving,'commission'=>$commission,'driver_share'=>$driverShare,'created_at'=>fi_date($ride['createdAt']??$ride['requestedAt']??null),'accepted_at'=>fi_date($ride['acceptedAt']??null),'completed_at'=>fi_date($ride['completedAt']??$ride['rideCompletedAt']??null),'created_source'=>$createdSource,'created_source_label'=>fi_source_label($createdSource),'updated_source'=>$updatedSource,'updated_source_label'=>fi_source_label($updatedSource),'payment_source'=>fi_source_label(fi_source($payment['sourcePlatform']??$payment['source']??$payment['platform']??'')),'source_collection'=>fi_text($ride,['_collection'],'rides')];
+}
+
+try{
+    $rides=[];
+    foreach(['rides','rideRequests'] as $collection)foreach(admin_list_collection($collection,500) as $ride){if(!fi_real($ride))continue;$ride['_collection']=$collection;$key=fi_key($ride);if($key==='')continue;$old=$rides[$key]??null;$newTime=strtotime(fi_date($ride['updatedAt']??$ride['createdAt']??null))?:0;$oldTime=$old?(strtotime(fi_date($old['updatedAt']??$old['createdAt']??null))?:0):-1;if(!$old||$newTime>=$oldTime)$rides[$key]=$ride;}
+    $passengers=[];foreach(admin_list_collection('passengers',500) as $profile){$id=fi_text($profile,['uid']);if($id!=='')$passengers[$id]=$profile;}
+    $drivers=[];foreach(admin_list_collection('drivers',500) as $profile){$id=fi_text($profile,['uid']);if($id!=='')$drivers[$id]=$profile;}
+    $payments=[];foreach(admin_list_collection('payments',500) as $payment){$id=fi_text($payment,['rideId','uid']);if($id!=='')$payments[$id]=$payment;}
+    $rows=[];foreach($rides as $ride)$rows[]=fi_row($ride,$passengers,$drivers,$payments);usort($rows,static fn($a,$b)=>strcmp($b['completed_at']?:$b['created_at'],$a['completed_at']?:$a['created_at']));
+    $q=fi_norm($_GET['q']??'');$type=fi_norm($_GET['type']??'all');$status=fi_norm($_GET['status']??'all');$comparison=fi_norm($_GET['comparison']??'all');$source=fi_norm($_GET['source']??'all');$date=fi_norm($_GET['date']??'30d');
+    $now=new DateTimeImmutable('now',new DateTimeZone('Asia/Karachi'));$from=match($date){'today'=>$now->setTime(0,0),'7d'=>$now->modify('-6 days')->setTime(0,0),'30d'=>$now->modify('-29 days')->setTime(0,0),'month'=>$now->modify('first day of this month')->setTime(0,0),'year'=>$now->setDate((int)$now->format('Y'),1,1)->setTime(0,0),default=>null};
+    $filtered=array_values(array_filter($rows,static function($row)use($q,$type,$status,$comparison,$source,$from){if($type!=='all'&&$row['ride_type']!==$type)return false;if($status!=='all'&&$row['status_group']!==$status)return false;if($comparison!=='all'&&$row['comparison']!==$comparison)return false;if($source!=='all'&&$row['created_source']!==$source&&$row['updated_source']!==$source)return false;if($from){$stamp=$row['completed_at']?:$row['created_at'];try{if(!$stamp||new DateTimeImmutable($stamp)<$from)return false;}catch(Throwable){return false;}}if($q!=='')return str_contains(fi_norm(implode(' ',[$row['ride_code'],$row['passenger']['name'],$row['passenger']['email'],$row['driver']['name'],$row['driver']['email'],$row['pickup'],$row['dropoff']])), $q);return true;}));
+    $estimated=[];$accepted=[];$finals=[];$savings=[];$revenue=0.;foreach($filtered as $row){if($row['estimated_fare']!==null&&$row['status_group']!=='cancelled')$estimated[]=$row['estimated_fare'];if($row['accepted_fare']!==null&&in_array($row['status_group'],['accepted','active','completed'],true))$accepted[]=$row['accepted_fare'];if($row['status_group']==='completed'&&$row['final_fare']!==null){$finals[]=$row['final_fare'];$revenue+=$row['final_fare'];}if($row['status_group']==='completed'&&$row['ride_type']==='carpool'&&$row['carpool_saving']!==null)$savings[]=$row['carpool_saving'];}
+    $avg=static fn(array $values)=>$values?round(array_sum($values)/count($values),2):null;
+    $summary=['avg_estimated'=>$avg($estimated),'avg_accepted'=>$avg($accepted),'avg_final'=>$avg($finals),'avg_carpool_saving'=>$avg($savings),'total_revenue'=>round($revenue,2),'normal_rides'=>count(array_filter($filtered,fn($x)=>$x['ride_type']!=='carpool')),'carpool_rides'=>count(array_filter($filtered,fn($x)=>$x['ride_type']==='carpool')),'completed_rides'=>count(array_filter($filtered,fn($x)=>$x['status_group']==='completed'))];
+    if(fi_norm($_GET['export']??'')==='csv'){header('Content-Type: text/csv; charset=utf-8');header('Content-Disposition: attachment; filename="fare-insights-'.date('Ymd-His').'.csv"');$out=fopen('php://output','w');fputcsv($out,['Ride ID','Source Platform','Last Update Source','Ride Type','Passenger','Driver','Pickup','Drop-off','Distance','Estimated Fare','Passenger Offer','Driver Counter Offer','Accepted Fare','Final Fare','Fare Difference','Original Carpool Fare','Shared Fare','Passenger Savings','Ride Status','Created At','Completed At']);foreach($filtered as$row)fputcsv($out,[$row['ride_code'],$row['created_source_label'],$row['updated_source_label'],$row['ride_type'],$row['passenger']['name'],$row['driver']['name'],$row['pickup'],$row['dropoff'],$row['distance_km'],$row['estimated_fare'],$row['passenger_offer'],$row['driver_counter_offer'],$row['accepted_fare'],$row['final_fare'],$row['fare_difference'],$row['original_fare'],$row['shared_fare'],$row['carpool_saving'],$row['status_label'],$row['created_at'],$row['completed_at']]);fclose($out);exit;}
+    $size=max(10,min(20,(int)($_GET['page_size']??15)));$total=count($filtered);$pages=max(1,(int)ceil($total/$size));$page=max(1,min($pages,(int)($_GET['page']??1)));
+    fi_json(['ok'=>true,'summary'=>$summary,'rows'=>array_slice($filtered,($page-1)*$size,$size),'pagination'=>['page'=>$page,'total'=>$total,'total_pages'=>$pages,'has_prev'=>$page>1,'has_next'=>$page<$pages],'collections'=>array_values(array_unique(array_column($rides,'_collection')))]);
+}catch(Throwable $error){error_log('Fare Insights: '.$error->getMessage());fi_json(['ok'=>false,'message'=>'Fare data could not be loaded.'],500);}

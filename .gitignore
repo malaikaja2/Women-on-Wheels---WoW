@@ -1,0 +1,16 @@
+.codex_tmp/
+.mobile_patch/
+.vscode/
+repair-backups/
+firebase-debug.log
+sess_*
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+node_modules/
+.cache/
+vendor/
+php/uploads/
+php/mail_config.php

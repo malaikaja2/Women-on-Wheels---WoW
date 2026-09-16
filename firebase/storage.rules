@@ -1,0 +1,85 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && (
+          request.auth.token.role == 'admin'
+          || request.auth.token.role == 'super_admin'
+          || (
+            firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid))
+            && firestore.get(/databases/(default)/documents/admins/$(request.auth.uid)).data.isActive == true
+          )
+        );
+    }
+
+    function validImage(maxBytes) {
+      return request.resource != null
+        && request.resource.size > 0
+        && request.resource.size <= maxBytes
+        && request.resource.contentType.matches('image/(jpeg|png|webp)');
+    }
+
+    // Canonical centralized profile images. Signed-in app users may read these
+    // for normal profile display; only the owner/admin can replace them.
+    match /users/{uid}/profile/{fileName} {
+      allow read: if signedIn();
+      allow create, update: if isOwner(uid) && validImage(2 * 1024 * 1024);
+      allow delete: if isOwner(uid) || isAdmin();
+    }
+
+    // Canonical private verification documents: CNIC, licence, vehicle docs.
+    match /users/{uid}/verification/{fileName} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create, update: if isOwner(uid) && validImage(5 * 1024 * 1024);
+      allow delete: if isOwner(uid) || isAdmin();
+    }
+
+    // Current mobile passenger profile path, kept so existing app code remains
+    // compatible while it is migrated to the canonical users/{uid}/profile path.
+    match /passenger_profile_photos/{uid}/{fileName} {
+      allow read: if signedIn();
+      allow create, update: if isOwner(uid) && validImage(2 * 1024 * 1024);
+      allow delete: if isOwner(uid) || isAdmin();
+    }
+
+    // Lost & Found images are not identity documents, but still require auth.
+    match /lost_found/{uid}/{fileName} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create, update: if isOwner(uid) && validImage(5 * 1024 * 1024);
+      allow delete: if isOwner(uid) || isAdmin();
+    }
+
+    // Legacy paths remain readable/writable by their owner or admin.
+    match /driver_documents/{uid}/{fileName} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create, update: if isOwner(uid) && validImage(5 * 1024 * 1024);
+      allow delete: if isOwner(uid) || isAdmin();
+    }
+
+    match /driver_cnic/{uid}/{fileName} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create, update: if isOwner(uid) && validImage(5 * 1024 * 1024);
+      allow delete: if isOwner(uid) || isAdmin();
+    }
+
+    match /profile_images/{uid}/{fileName} {
+      allow read: if signedIn();
+      allow create, update: if isOwner(uid) && validImage(2 * 1024 * 1024);
+      allow delete: if isOwner(uid) || isAdmin();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
