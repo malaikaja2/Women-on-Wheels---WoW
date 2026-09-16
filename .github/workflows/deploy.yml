@@ -1,0 +1,43 @@
+name: Deploy to InfinityFree
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Deploy website files
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ftpupload.net
+          username: if0_42833527
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          port: 21
+          local-dir: ./
+          server-dir: htdocs/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/.env
+            **/.env.*
+            **/node_modules/**
+            **/vendor/**
+            php/mail_config.php
+            php/uploads/**
+            **/uploads/**
+            **/*cnic*
+            **/*CNIC*
