@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 session_start();
-require_once __DIR__ . '/../firebase/config.php';
+require_once __DIR__ . '/../firebase/firestore.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -23,13 +23,9 @@ if ($uid === '') {
     wow_token_json(['ok' => false, 'error' => 'not_authenticated'], 401);
 }
 
-$keyPath = getenv('GOOGLE_APPLICATION_CREDENTIALS') ?: '';
-if ($keyPath === '' || !is_file($keyPath)) {
-    wow_token_json(['ok' => false, 'error' => 'service_account_missing'], 500);
-}
-
-$serviceAccount = json_decode((string)file_get_contents($keyPath), true);
-if (!is_array($serviceAccount) || empty($serviceAccount['client_email']) || empty($serviceAccount['private_key'])) {
+try {
+    $serviceAccount = wow_firebase_service_account_data();
+} catch (Throwable) {
     wow_token_json(['ok' => false, 'error' => 'service_account_invalid'], 500);
 }
 

@@ -2,8 +2,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/db.php';
-require_once dirname(__DIR__) . '/php/auth_audit_service.php';
 
 if (admin_is_authenticated()) {
     header('Location: dashboard.php');
@@ -68,6 +66,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
+        require_once __DIR__ . '/db.php';
+        require_once dirname(__DIR__) . '/php/auth_audit_service.php';
+
         try {
             $auth = wow_auth_login($email, $password);
             $uid = (string)($auth['localId'] ?? '');

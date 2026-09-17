@@ -45,6 +45,7 @@ jobs:
             **/.env.*
             **/node_modules/**
             php/mail_config.php
+            firebase/firebase_runtime_config.php
             php/uploads/**
             **/uploads/**
             **/*cnic*

@@ -162,12 +162,9 @@ function wow_driver_document_bucket(): string
     return getenv('FIREBASE_STORAGE_BUCKET') ?: (defined('WOW_FIREBASE_STORAGE_BUCKET') ? WOW_FIREBASE_STORAGE_BUCKET : '');
 }
 
-function wow_driver_document_service_account_path(): string
+function wow_driver_document_service_account_credentials(): array|string
 {
-    $path = getenv('GOOGLE_APPLICATION_CREDENTIALS') ?: '';
-    if ($path !== '' && is_file($path)) return $path;
-    $fallback = 'C:\\firebase-keys\\women-on-wheels-f8970-service-account.json';
-    return is_file($fallback) ? $fallback : '';
+    return wow_firebase_service_account_credentials();
 }
 
 function wow_driver_document_storage_token(): string
@@ -176,11 +173,10 @@ function wow_driver_document_storage_token(): string
     if (is_array($token) && (int)($token['expires_at'] ?? 0) > time() + 60) {
         return (string)$token['access_token'];
     }
-    $path = wow_driver_document_service_account_path();
-    if ($path === '') throw new RuntimeException('storage_credentials_unavailable');
+    $credentialsConfig = wow_driver_document_service_account_credentials();
     $credentials = new \Google\Auth\Credentials\ServiceAccountCredentials(
         ['https://www.googleapis.com/auth/devstorage.full_control'],
-        $path
+        $credentialsConfig
     );
     $token = $credentials->fetchAuthToken();
     if (empty($token['access_token'])) throw new RuntimeException('storage_token_unavailable');

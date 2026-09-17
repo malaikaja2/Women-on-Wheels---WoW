@@ -10,6 +10,53 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Psr\Http\Message\ResponseInterface;
 
+function wow_firebase_service_account_credentials(): array|string
+{
+    $keyPath = getenv('GOOGLE_APPLICATION_CREDENTIALS') ?: '';
+    if ($keyPath !== '' && is_file($keyPath)) {
+        return $keyPath;
+    }
+
+    $localFallback = 'C:\\firebase-keys\\women-on-wheels-f8970-service-account.json';
+    if (is_file($localFallback)) {
+        return $localFallback;
+    }
+
+    $runtimeConfigPath = __DIR__ . '/firebase_runtime_config.php';
+    if (!is_file($runtimeConfigPath)) {
+        throw new RuntimeException('Firebase service-account credentials are not configured.');
+    }
+
+    $runtimeConfig = require $runtimeConfigPath;
+    $serviceAccount = is_array($runtimeConfig) ? ($runtimeConfig['service_account'] ?? null) : null;
+    if (!is_array($serviceAccount)
+        || empty($serviceAccount['project_id'])
+        || empty($serviceAccount['client_email'])
+        || empty($serviceAccount['private_key'])
+        || empty($serviceAccount['token_uri'])) {
+        throw new RuntimeException('Firebase runtime credentials are invalid.');
+    }
+
+    return $serviceAccount;
+}
+
+function wow_firebase_service_account_data(): array
+{
+    $credentials = wow_firebase_service_account_credentials();
+    if (is_array($credentials)) {
+        return $credentials;
+    }
+
+    $serviceAccount = json_decode((string)file_get_contents($credentials), true);
+    if (!is_array($serviceAccount)
+        || empty($serviceAccount['client_email'])
+        || empty($serviceAccount['private_key'])) {
+        throw new RuntimeException('Firebase service-account credentials are invalid.');
+    }
+
+    return $serviceAccount;
+}
+
 final class WowFirestoreRestClient
 {
     private Client $http;
@@ -233,20 +280,9 @@ final class WowFirestoreRestClient
             return (string)$this->token['access_token'];
         }
 
-        $keyPath = getenv('GOOGLE_APPLICATION_CREDENTIALS') ?: '';
-        if ($keyPath === '' || !is_file($keyPath)) {
-            $fallback = 'C:\\firebase-keys\\women-on-wheels-f8970-service-account.json';
-            if (is_file($fallback)) {
-                $keyPath = $fallback;
-            }
-        }
-        if ($keyPath === '' || !is_file($keyPath)) {
-            throw new RuntimeException('GOOGLE_APPLICATION_CREDENTIALS is not configured.');
-        }
-
         $credentials = new ServiceAccountCredentials(
             ['https://www.googleapis.com/auth/datastore'],
-            $keyPath
+            wow_firebase_service_account_credentials()
         );
         $token = $credentials->fetchAuthToken();
         if (empty($token['access_token'])) {
